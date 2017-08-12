@@ -176,6 +176,7 @@ private:
   double minprob;
   double mincos;
   double minDS;
+  edm::EDGetTokenT<edm::TriggerResults>  hltTrigResTag_;
   edm::EDGetTokenT<trigger::TriggerEvent>  hltInputTag_;
   //edm::EDGetTokenT<edm::TriggerResults>  hltInputTag_;
   //edm::InputTag  hltInputTag_;
