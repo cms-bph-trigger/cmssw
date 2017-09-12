@@ -28,6 +28,7 @@ BPHMonitor::BPHMonitor( const edm::ParameterSet& iConfig ) :
   , prob_binning_           ( getHistoPSet (iConfig.getParameter<edm::ParameterSet>("histoPSet").getParameter<edm::ParameterSet>   ("probPSet")     ) )
   , num_genTriggerEventFlag_(new GenericTriggerEventFlag(iConfig.getParameter<edm::ParameterSet>("numGenericTriggerEventPSet"),consumesCollector(), *this))
   , den_genTriggerEventFlag_(new GenericTriggerEventFlag(iConfig.getParameter<edm::ParameterSet>("denGenericTriggerEventPSet"),consumesCollector(), *this))
+  , prescaleWeightProvider_( new PrescaleWeightProvider( iConfig.getParameter<edm::ParameterSet>("PrescaleTriggerEventPSet"),consumesCollector(), *this))
   , muoSelection_ ( iConfig.getParameter<std::string>("muoSelection") )
   , muoSelection_ref ( iConfig.getParameter<std::string>("muoSelection_ref") )
   , muoSelection_tag ( iConfig.getParameter<std::string>("muoSelection_tag") )
@@ -48,6 +49,9 @@ BPHMonitor::BPHMonitor( const edm::ParameterSet& iConfig ) :
   , minmassUpsilon     ( iConfig.getParameter<double>("minmassUpsilon" )     )
   , maxmassJpsiTk     ( iConfig.getParameter<double>("maxmassJpsiTk" )     )
   , minmassJpsiTk     ( iConfig.getParameter<double>("minmassJpsiTk" )     )
+  , kaon_mass     ( iConfig.getParameter<double>("kaon_mass" )     )
+  , mu_mass     ( iConfig.getParameter<double>("mu_mass" )     )
+  , min_dR     ( iConfig.getParameter<double>("min_dR" )     )
   , minprob     ( iConfig.getParameter<double>("minprob" )     )
   , mincos     ( iConfig.getParameter<double>("mincos" )     )
   , minDS     ( iConfig.getParameter<double>("minDS" )     )
@@ -58,7 +62,6 @@ BPHMonitor::BPHMonitor( const edm::ParameterSet& iConfig ) :
   , trSelection_ ( iConfig.getParameter<std::string>("muoSelection") )
   , trSelection_ref ( iConfig.getParameter<std::string>("trSelection_ref") )
   , DMSelection_ref ( iConfig.getParameter<std::string>("DMSelection_ref") )
-
 {
 
   muPhi_.numerator   = nullptr;
@@ -127,6 +130,7 @@ BPHMonitor::~BPHMonitor()
 {
   if (num_genTriggerEventFlag_) delete num_genTriggerEventFlag_;
   if (den_genTriggerEventFlag_) delete den_genTriggerEventFlag_;
+  delete prescaleWeightProvider_;
 }
 
 MEbinning BPHMonitor::getHistoPSet(edm::ParameterSet pset)
@@ -352,7 +356,7 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
   // Initialize the GenericTriggerEventFlag
   if ( num_genTriggerEventFlag_ && num_genTriggerEventFlag_->on() ) num_genTriggerEventFlag_->initRun( iRun, iSetup );
   if ( den_genTriggerEventFlag_ && den_genTriggerEventFlag_->on() ) den_genTriggerEventFlag_->initRun( iRun, iSetup );
-
+  prescaleWeightProvider_->initRun( iRun, iSetup );
 }
 
 #include "FWCore/Framework/interface/ESHandle.h"
@@ -374,10 +378,14 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
   edm::Handle<reco::PhotonCollection> phHandle;
   iEvent.getByToken( phToken_, phHandle );
 
+
   edm::Handle<edm::TriggerResults> handleTriggerTrigRes; 
+
   edm::Handle<trigger::TriggerEvent> handleTriggerEvent; 
   edm::ESHandle<MagneticField> bFieldHandle;
   // Filter out events if Trigger Filtering is requested
+  double PrescaleWeight = prescaleWeightProvider_->prescaleWeight( iEvent, iSetup );  
+  
   if (tnp_>0) {//TnP method 
     if (den_genTriggerEventFlag_->on() && ! den_genTriggerEventFlag_->accept( iEvent, iSetup) ) return;
     iEvent.getByToken( hltInputTag_, handleTriggerEvent);
@@ -397,9 +405,9 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           muEta_.denominator->Fill(m.eta());
           muPt_.denominator ->Fill(m.pt());
           if (muoSelection_( m )){
-            muPhi_.numerator->Fill(m.phi());
-            muEta_.numerator->Fill(m.eta());
-            muPt_.numerator ->Fill(m.pt());
+            muPhi_.numerator->Fill(m.phi(),PrescaleWeight);
+            muEta_.numerator->Fill(m.eta(),PrescaleWeight);
+            muPt_.numerator ->Fill(m.pt(),PrescaleWeight);
           }
         }      
       }
@@ -456,7 +464,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
         }
         double DiMuMass = (m1.p4()+m.p4()).M();
         switch(enum_){//enum_ = 1...9, represents different sets of variables for different paths, we want to have different hists for different paths
-        case 1: tnp_=1;//already filled hists for tnp method
+        case 1: tnp_=true;//already filled hists for tnp method
         case 2:
           if ((Jpsi_) && (!Upsilon_)){
             if (DiMuMass> maxmassJpsi || DiMuMass< minmassJpsi)continue;
@@ -552,7 +560,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           break;    
   
         case 7:// the hists for photon monitoring will be filled on 515 line
-          tnp_=0;
+          tnp_=false;
           break;
           
         case 8://vtx monitoring, filling probability, DS, DCA, cos of pointing angle to the PV, eta, pT of dimuon
@@ -584,16 +592,16 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
       
 	      if(!trSelection_ref(t))continue;
 	      if(false && !matchToTrigger(hltpath,t, handleTriggerEvent)) continue;
-              reco::Track itrk1       = t ;                                                
+              const reco::Track& itrk1       = t ;                                                
               
-              if((reco::deltaR(t,m1) <= 0.001))continue;//checking overlaping
-              if((reco::deltaR(t,m) <= 0.001)) continue;
+              if((reco::deltaR(t,m1) <= min_dR))continue;//checking overlaping
+              if((reco::deltaR(t,m) <= min_dR)) continue;
    
               if (! itrk1.quality(reco::TrackBase::highPurity))     continue;
   
               reco::Particle::LorentzVector pB, p1, p2, p3;
-              double trackMass2 = 0.493677 *0.493677;
-              double MuMass2 = 0.1056583745 *0.1056583745;
+              double trackMass2 = kaon_mass * kaon_mass;
+              double MuMass2 = mu_mass * mu_mass;//0.1056583745 *0.1056583745;
               double e1   = sqrt(m.momentum().Mag2()  + MuMass2          );
               double e2   = sqrt(m1.momentum().Mag2()  + MuMass2          );
               double e3   = sqrt(itrk1.momentum().Mag2() + trackMass2  );
@@ -645,13 +653,13 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	    for (auto const & t : *trHandle) {
 	      if(!trSelection_ref(t))continue;
 	      if(false && !matchToTrigger(hltpath,t, handleTriggerEvent)) continue;
-	      reco::Track itrk1       = t ;                                                
-	      if((reco::deltaR(t,m1) <= 0.001))continue;//checking overlaping
-	      if((reco::deltaR(t,m) <= 0.001)) continue;
+	      const reco::Track& itrk1       = t ;                                                
+	      if((reco::deltaR(t,m1) <= min_dR))continue;//checking overlaping
+	      if((reco::deltaR(t,m) <= min_dR)) continue;
 	      if (! itrk1.quality(reco::TrackBase::highPurity))     continue;
 	      reco::Particle::LorentzVector pB, p2, p3;
-	      double trackMass2 = 0.493677 *0.493677;
-	      double MuMass2 = 0.1056583745 *0.1056583745;
+        double trackMass2 = kaon_mass * kaon_mass;
+        double MuMass2 = mu_mass * mu_mass;//0.1056583745 *0.1056583745;
 	      double e2   = sqrt(m1.momentum().Mag2()  + MuMass2          );
 	      double e3   = sqrt(itrk1.momentum().Mag2() + trackMass2  );
 	      p2   = reco::Particle::LorentzVector(m1.px() , m1.py() , m1.pz() , e2  );
@@ -699,16 +707,16 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	      for (auto const & t1 : *trHandle) {
 		if(!trSelection_ref(t1))continue;
 		if(false && !matchToTrigger(hltpath,t1, handleTriggerEvent)) continue;
-		reco::Track itrk1       = t ;                                                
-		reco::Track itrk2       = t1 ;                                                
-		if((reco::deltaR(t,m1) <= 0.001))continue;//checking overlaping
-		if((reco::deltaR(t,t1) <= 0.001))continue;//checking overlaping
-		if((reco::deltaR(t,m) <= 0.001)) continue;
+		const reco::Track& itrk1       = t ;                                                
+		const reco::Track& itrk2       = t1 ;                                                
+		if((reco::deltaR(t,m1) <= min_dR))continue;//checking overlaping
+		if((reco::deltaR(t,t1) <= min_dR))continue;//checking overlaping
+		if((reco::deltaR(t,m) <= min_dR)) continue;
 		if (! itrk1.quality(reco::TrackBase::highPurity))     continue;
 		if (! itrk2.quality(reco::TrackBase::highPurity))     continue;
 		reco::Particle::LorentzVector pB, p1, p2, p3, p4;
-		double trackMass2 = 0.493677 *0.493677;
-		double MuMass2 = 0.1056583745 *0.1056583745;
+    double trackMass2 = kaon_mass * kaon_mass;
+    double MuMass2 = mu_mass * mu_mass;//0.1056583745 *0.1056583745;
 		double e1   = sqrt(m.momentum().Mag2()  + MuMass2          );
 		double e2   = sqrt(m1.momentum().Mag2()  + MuMass2          );
 		double e3   = sqrt(itrk1.momentum().Mag2() + trackMass2  );
@@ -763,10 +771,11 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
       }
     }
 
+
     if (enum_ == 7){//photons
       const std::string & hltpath = hltpaths_den[0];
       for (auto const & p : *phHandle) {
-	if(false && !matchToTrigger(hltpath,p, handleTriggerEvent)) continue;
+	      if(false && !matchToTrigger(hltpath,p, handleTriggerEvent)) continue;
         phPhi_.denominator->Fill(p.phi());
         phEta_.denominator->Fill(p.eta());
         phPt_.denominator ->Fill(p.pt());
@@ -822,7 +831,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	}
 	double DiMuMass = (m1.p4()+m.p4()).M();
 	switch(enum_){//enum_ = 1...9, represents different sets of variables for different paths, we want to have different hists for different paths
-	case 1: tnp_=1;//already filled hists for tnp method
+	case 1: tnp_=true;//already filled hists for tnp method
 	case 2:
 	  if ((Jpsi_) && (!Upsilon_)){
 	    if (DiMuMass> maxmassJpsi || DiMuMass< minmassJpsi)continue;
@@ -831,15 +840,15 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	    if (DiMuMass> maxmassUpsilon || DiMuMass< minmassUpsilon)continue;
 	  }
 	  if (dimuonCL<minprob)continue;
-	  mu1Phi_.numerator->Fill(m.phi());
-	  mu1Eta_.numerator->Fill(m.eta());
-	  mu1Pt_.numerator ->Fill(m.pt());
-	  mu2Phi_.numerator->Fill(m1.phi());
-	  mu2Eta_.numerator->Fill(m1.eta());
-	  mu2Pt_.numerator ->Fill(m1.pt());
-	  DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt() );
-	  DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta() );
-	  DiMuPhi_.numerator ->Fill((m1.p4()+m.p4()).Phi());
+	  mu1Phi_.numerator->Fill(m.phi(),PrescaleWeight);
+	  mu1Eta_.numerator->Fill(m.eta(),PrescaleWeight);
+	  mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
+	  mu2Phi_.numerator->Fill(m1.phi(),PrescaleWeight);
+	  mu2Eta_.numerator->Fill(m1.eta(),PrescaleWeight);
+	  mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
+	  DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt() ,PrescaleWeight);
+	  DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta() ,PrescaleWeight);
+	  DiMuPhi_.numerator ->Fill((m1.p4()+m.p4()).Phi(),PrescaleWeight);
 	  break;
 	case 3:
 	  if ((Jpsi_) && (!Upsilon_)){
@@ -850,10 +859,10 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	    if (DiMuMass> maxmassUpsilon || DiMuMass< minmassUpsilon)continue;
 	  }
 	  if (dimuonCL<minprob)continue;
-	  mu1Eta_.numerator->Fill(m.eta());
-	  mu1Pt_.numerator ->Fill(m.pt());
-	  mu2Eta_.numerator->Fill(m1.eta());
-	  mu2Pt_.numerator ->Fill(m1.pt());
+	  mu1Eta_.numerator->Fill(m.eta(),PrescaleWeight);
+	  mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
+	  mu2Eta_.numerator->Fill(m1.eta(),PrescaleWeight);
+	  mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
 	  break; 
 	case 4:
 	  if (dimuonCL<minprob)continue;
@@ -864,16 +873,16 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	  if ((!Jpsi_) && (Upsilon_)){
 	    if (DiMuMass> maxmassUpsilon || DiMuMass< minmassUpsilon)continue;
 	  }
-	  mu1Phi_.numerator->Fill(m.phi());
-	  mu1Eta_.numerator->Fill(m.eta());
-	  mu1Pt_.numerator ->Fill(m.pt());
-	  mu2Phi_.numerator->Fill(m1.phi());
-	  mu2Eta_.numerator->Fill(m1.eta());
-	  mu2Pt_.numerator ->Fill(m1.pt());
-	  DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt() );
-	  DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta() );
-	  DiMuPhi_.numerator ->Fill((m1.p4()+m.p4()).Phi());
-	  DiMudR_.numerator ->Fill(reco::deltaR(m,m1));
+	  mu1Phi_.numerator->Fill(m.phi(),PrescaleWeight);
+	  mu1Eta_.numerator->Fill(m.eta(),PrescaleWeight);
+	  mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
+	  mu2Phi_.numerator->Fill(m1.phi(),PrescaleWeight);
+	  mu2Eta_.numerator->Fill(m1.eta(),PrescaleWeight);
+	  mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
+	  DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt() ,PrescaleWeight);
+	  DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta() ,PrescaleWeight);
+	  DiMuPhi_.numerator ->Fill((m1.p4()+m.p4()).Phi(),PrescaleWeight);
+	  DiMudR_.numerator ->Fill(reco::deltaR(m,m1),PrescaleWeight);
 	  break;
 	case 5:
 	  if (dimuonCL<minprob)continue;
@@ -883,16 +892,16 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	  if ((!Jpsi_) && (Upsilon_)){
 	    if (DiMuMass> maxmassUpsilon || DiMuMass< minmassUpsilon)continue;
 	  }
-	  mu1Phi_.numerator->Fill(m.phi());
-	  mu1Eta_.numerator->Fill(m.eta());
-	  mu1Pt_.numerator ->Fill(m.pt());
-	  mu2Phi_.numerator->Fill(m1.phi());
-	  mu2Eta_.numerator->Fill(m1.eta());
-	  mu2Pt_.numerator ->Fill(m1.pt());
-	  DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt() );
-	  DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta() );
-	  DiMuPhi_.numerator ->Fill((m1.p4()+m.p4()).Phi());
-	  DiMudR_.numerator ->Fill(reco::deltaR(m,m1));
+	  mu1Phi_.numerator->Fill(m.phi(),PrescaleWeight);
+	  mu1Eta_.numerator->Fill(m.eta(),PrescaleWeight);
+	  mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
+	  mu2Phi_.numerator->Fill(m1.phi(),PrescaleWeight);
+	  mu2Eta_.numerator->Fill(m1.eta(),PrescaleWeight);
+	  mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
+	  DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt() ,PrescaleWeight);
+	  DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta() ,PrescaleWeight);
+	  DiMuPhi_.numerator ->Fill((m1.p4()+m.p4()).Phi(),PrescaleWeight);
+	  DiMudR_.numerator ->Fill(reco::deltaR(m,m1),PrescaleWeight);
 	  break;
 	case 6: 
 	  if (dimuonCL<minprob)continue;
@@ -905,19 +914,19 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	  for (auto const & m2 : *muoHandle) {//triple muon paths
 	    if(false && !matchToTrigger(hltpath1,m2, handleTriggerEvent)) continue;
 	    if (m2.pt() == m.pt())continue;
-	    mu1Phi_.numerator->Fill(m.phi());
-	    mu1Eta_.numerator->Fill(m.eta());
-	    mu1Pt_.numerator ->Fill(m.pt());
-	    mu2Phi_.numerator->Fill(m1.phi());
-	    mu2Eta_.numerator->Fill(m1.eta());
-	    mu2Pt_.numerator ->Fill(m1.pt());
-	    mu3Phi_.numerator->Fill(m2.phi());
-	    mu3Eta_.numerator->Fill(m2.eta());
-	    mu3Pt_.numerator ->Fill(m2.pt());
+	    mu1Phi_.numerator->Fill(m.phi(),PrescaleWeight);
+	    mu1Eta_.numerator->Fill(m.eta(),PrescaleWeight);
+	    mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
+	    mu2Phi_.numerator->Fill(m1.phi(),PrescaleWeight);
+	    mu2Eta_.numerator->Fill(m1.eta(),PrescaleWeight);
+	    mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
+	    mu3Phi_.numerator->Fill(m2.phi(),PrescaleWeight);
+	    mu3Eta_.numerator->Fill(m2.eta(),PrescaleWeight);
+	    mu3Pt_.numerator ->Fill(m2.pt(),PrescaleWeight);
 	  }      
 	  break;    
 	case 7:// the hists for photon monitoring will be filled on 515 line
-	  tnp_=0;
+	  tnp_=false;
 	  break;
 	case 8://vtx monitoring, filling probability, DS, DCA, cos of pointing angle to the PV, eta, pT of dimuon
 	  if ((Jpsi_) && (!Upsilon_)){
@@ -926,13 +935,13 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	  if ((!Jpsi_) && (Upsilon_)){
 	    if (DiMuMass> maxmassUpsilon || DiMuMass< minmassUpsilon)continue;
 	  }
-	  DiMuProb_.numerator ->Fill( dimuonCL);
+	  DiMuProb_.numerator ->Fill( dimuonCL,PrescaleWeight);
 	  if (dimuonCL<minprob)continue;
-	  DiMuDS_.numerator ->Fill( displacementFromBeamspotJpsi.perp()/sqrt(jerr.rerr(displacementFromBeamspotJpsi)));
-	  DiMuPVcos_.numerator ->Fill(jpsi_cos );
-	  DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt() );
-	  DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta() );
-	  DiMuDCA_.numerator ->Fill( cApp.distance());
+	  DiMuDS_.numerator ->Fill( displacementFromBeamspotJpsi.perp()/sqrt(jerr.rerr(displacementFromBeamspotJpsi)),PrescaleWeight);
+	  DiMuPVcos_.numerator ->Fill(jpsi_cos ,PrescaleWeight);
+	  DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt() ,PrescaleWeight);
+	  DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta() ,PrescaleWeight);
+	  DiMuDCA_.numerator ->Fill( cApp.distance(),PrescaleWeight);
 	  break;
 	case 9:
 	  if (dimuonCL<minprob)continue;
@@ -942,13 +951,13 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	    for (auto const & t : *trHandle) {
 	      if(!trSelection_ref(t))continue;
 	      if(false && !matchToTrigger(hltpath1,t, handleTriggerEvent)) continue;
-	      reco::Track itrk1       = t ;                                                
-	      if((reco::deltaR(t,m1) <= 0.001))continue;//checking overlaping
-	      if((reco::deltaR(t,m) <= 0.001)) continue;
+	      const reco::Track& itrk1       = t ;                                                
+	      if((reco::deltaR(t,m1) <= min_dR))continue;//checking overlaping
+	      if((reco::deltaR(t,m) <= min_dR)) continue;
 	      if (! itrk1.quality(reco::TrackBase::highPurity))     continue;
 	      reco::Particle::LorentzVector pB, p1, p2, p3;
-	      double trackMass2 = 0.493677 *0.493677;
-	      double MuMass2 = 0.1056583745 *0.1056583745;
+        double trackMass2 = kaon_mass * kaon_mass;
+        double MuMass2 = mu_mass * mu_mass;//0.1056583745 *0.1056583745;
 	      double e1   = sqrt(m.momentum().Mag2()  + MuMass2          );
 	      double e2   = sqrt(m1.momentum().Mag2()  + MuMass2          );
 	      double e3   = sqrt(itrk1.momentum().Mag2() + trackMass2  );
@@ -984,9 +993,9 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	      if (JpsiTkCL<minprob)continue;
 	      if (fabs(jpsiKcos)<mincos)continue;
 	      if ((displacementFromBeamspot.perp()/sqrt(err.rerr(displacementFromBeamspot)))<minDS)continue;
-	      muPhi_.numerator->Fill(t.phi());
-	      muEta_.numerator->Fill(t.eta());
-	      muPt_.numerator ->Fill(t.pt());
+	      muPhi_.numerator->Fill(t.phi(),PrescaleWeight);
+	      muEta_.numerator->Fill(t.eta(),PrescaleWeight);
+	      muPt_.numerator ->Fill(t.pt(),PrescaleWeight);
 	    }
 	  }
 	  break;
@@ -996,13 +1005,13 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	    for (auto const & t : *trHandle) {
 	      if(!trSelection_ref(t))continue;
 	      if(false && !matchToTrigger(hltpath1,t, handleTriggerEvent)) continue;
-	      reco::Track itrk1       = t ;                                                
-	      if((reco::deltaR(t,m1) <= 0.001))continue;//checking overlaping
-	      if((reco::deltaR(t,m) <= 0.001)) continue;
+	      const reco::Track& itrk1       = t ;                                                
+	      if((reco::deltaR(t,m1) <= min_dR))continue;//checking overlaping
+	      if((reco::deltaR(t,m) <= min_dR)) continue;
 	      if (! itrk1.quality(reco::TrackBase::highPurity))     continue;
 	      reco::Particle::LorentzVector pB, p2, p3;
-	      double trackMass2 = 0.493677 *0.493677;
-	      double MuMass2 = 0.1056583745 *0.1056583745;
+        double trackMass2 = kaon_mass * kaon_mass;
+        double MuMass2 = mu_mass * mu_mass;//0.1056583745 *0.1056583745;
 	      double e2   = sqrt(m1.momentum().Mag2()  + MuMass2          );
 	      double e3   = sqrt(itrk1.momentum().Mag2() + trackMass2  );
 	      p2   = reco::Particle::LorentzVector(m1.px() , m1.py() , m1.pz() , e2  );
@@ -1033,9 +1042,9 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 						    0);
 	      reco::Vertex::Point vperp(displacementFromBeamspot.x(),displacementFromBeamspot.y(),0.);
 	      if (JpsiTkCL<minprob)continue;
-	      muPhi_.numerator->Fill(m1.phi());
-	      muEta_.numerator->Fill(m1.eta());
-	      muPt_.numerator ->Fill(m1.pt());
+	      muPhi_.numerator->Fill(m1.phi(),PrescaleWeight);
+	      muEta_.numerator->Fill(m1.eta(),PrescaleWeight);
+	      muPt_.numerator ->Fill(m1.pt(),PrescaleWeight);
 	    }
 	  }
 	  break;
@@ -1050,17 +1059,17 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	      for (auto const & t1 : *trHandle) {
 		if(!trSelection_ref(t1))continue;
 		if(false && !matchToTrigger(hltpath1,t1, handleTriggerEvent)) continue;
-		reco::Track itrk1       = t ;
-		reco::Track itrk2       = t1 ;
-		if((reco::deltaR(t,m1) <= 0.001))continue;//checking overlaping
-		if((reco::deltaR(t,t1) <= 0.001))continue;//checking overlaping
-		if((reco::deltaR(t,m) <= 0.001)) continue;
+		const reco::Track& itrk1       = t ;
+		const reco::Track& itrk2       = t1 ;
+		if((reco::deltaR(t,m1) <= min_dR))continue;//checking overlaping
+		if((reco::deltaR(t,t1) <= min_dR))continue;//checking overlaping
+		if((reco::deltaR(t,m) <= min_dR)) continue;
 		if (! itrk1.quality(reco::TrackBase::highPurity))     continue;
 		if (! itrk2.quality(reco::TrackBase::highPurity))     continue;
 
 		reco::Particle::LorentzVector pB, p1, p2, p3, p4;
-		double trackMass2 = 0.493677 *0.493677;
-		double MuMass2 = 0.1056583745 *0.1056583745;
+    double trackMass2 = kaon_mass * kaon_mass;
+    double MuMass2 = mu_mass * mu_mass;//0.1056583745 *0.1056583745;
 		double e1   = sqrt(m.momentum().Mag2()  + MuMass2          );
 		double e2   = sqrt(m1.momentum().Mag2()  + MuMass2          );
 		double e3   = sqrt(itrk1.momentum().Mag2() + trackMass2  );
@@ -1100,12 +1109,12 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 		if (JpsiTkCL<minprob)continue;
 		if (fabs(jpsiKcos)<mincos)continue;
 		if ((displacementFromBeamspot.perp()/sqrt(err.rerr(displacementFromBeamspot)))<minDS)continue;
-		mu1Phi_.numerator->Fill(t.phi());
-		mu1Eta_.numerator->Fill(t.eta());
-		mu1Pt_.numerator ->Fill(t.pt());
-		mu2Phi_.numerator->Fill(t1.phi());
-		mu2Eta_.numerator->Fill(t1.eta());
-		mu2Pt_.numerator ->Fill(t1.pt());
+		mu1Phi_.numerator->Fill(t.phi(),PrescaleWeight);
+		mu1Eta_.numerator->Fill(t.eta(),PrescaleWeight);
+		mu1Pt_.numerator ->Fill(t.pt(),PrescaleWeight);
+		mu2Phi_.numerator->Fill(t1.phi(),PrescaleWeight);
+		mu2Eta_.numerator->Fill(t1.eta(),PrescaleWeight);
+		mu2Pt_.numerator ->Fill(t1.pt(),PrescaleWeight);
 	      } 
 	      /////////////////////////
 	    }
@@ -1118,9 +1127,9 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
       const std::string &hltpath = hltpaths_num[0];
       for (auto const & p : *phHandle) {
         if(false && !matchToTrigger(hltpath,p, handleTriggerEvent)) continue;
-        phPhi_.numerator->Fill(p.phi());
-        phEta_.numerator->Fill(p.eta());
-        phPt_.numerator ->Fill(p.pt());
+        phPhi_.numerator->Fill(p.phi(),PrescaleWeight);
+        phEta_.numerator->Fill(p.eta(),PrescaleWeight);
+        phPt_.numerator ->Fill(p.pt(),PrescaleWeight);
       }
     }
   }
@@ -1160,7 +1169,7 @@ void BPHMonitor::fillDescriptions(edm::ConfigurationDescriptions & descriptions)
   desc.add<std::string>("DMSelection_ref", "Pt>4 & abs(eta)");
 
   desc.add<int>("nmuons",     1);
-  desc.add<bool>( "tnp", 0 );
+  desc.add<bool>( "tnp", false );
   desc.add<int>( "L3", 0 );
   desc.add<int>( "trOrMu", 0 );//if =0, track param monitoring
   desc.add<int>( "Jpsi", 0 );
@@ -1175,6 +1184,9 @@ void BPHMonitor::fillDescriptions(edm::ConfigurationDescriptions & descriptions)
   desc.add<double>( "minmassUpsilon", 8. );
   desc.add<double>( "maxmassJpsiTk", 5.46 );
   desc.add<double>( "minmassJpsiTk", 5.1 );
+  desc.add<double>( "kaon_mass", 0.493677 );
+  desc.add<double>( "mu_mass", 0.1056583745);
+  desc.add<double>( "min_dR", 0.001);
   desc.add<double>( "minprob", 0.005 );
   desc.add<double>( "mincos", 0.95 );
   desc.add<double>( "minDS", 3. );
@@ -1196,9 +1208,15 @@ void BPHMonitor::fillDescriptions(edm::ConfigurationDescriptions & descriptions)
   genericTriggerEventPSet.add<bool>("errorReplyL1",true);
   genericTriggerEventPSet.add<bool>("l1BeforeMask",true);
   genericTriggerEventPSet.add<unsigned int>("verbosityLevel",0);
-
   desc.add<edm::ParameterSetDescription>("numGenericTriggerEventPSet", genericTriggerEventPSet);
   desc.add<edm::ParameterSetDescription>("denGenericTriggerEventPSet", genericTriggerEventPSet);
+
+  edm::ParameterSetDescription PrescaleTriggerEventPSet;
+  PrescaleTriggerEventPSet.add<unsigned int>("prescaleWeightVerbosityLevel",0);
+  PrescaleTriggerEventPSet.add<edm::InputTag>("prescaleWeightTriggerResults",edm::InputTag("TriggerResults::HLT"));
+  PrescaleTriggerEventPSet.add<edm::InputTag>("prescaleWeightL1GtTriggerMenuLite",edm::InputTag("l1GtTriggerMenuLite"));
+  PrescaleTriggerEventPSet.add<std::vector<std::string>>("prescaleWeightHltPaths",{});
+  desc.add<edm::ParameterSetDescription>("PrescaleTriggerEventPSet", PrescaleTriggerEventPSet);
 
   edm::ParameterSetDescription histoPSet;
   edm::ParameterSetDescription phiPSet;
