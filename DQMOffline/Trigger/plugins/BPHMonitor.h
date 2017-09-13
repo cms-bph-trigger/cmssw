@@ -90,6 +90,8 @@ protected:
   template <typename T>
   bool matchToTrigger(const std::string &theTriggerName ,T t, edm::Handle<trigger::TriggerEvent> handleTriggerEvent);
   //bool matchToTrigger(std::string theTriggerName,T t, edm::Handle<trigger::TriggerEventWithRefs> handleTriggerEvent);
+  template <typename T>
+    bool matchToTrigger(const std::string &theTriggerName ,T t, std::string filterName="", std::vector<unsigned int> filterID={});
 
 
 private:
@@ -155,7 +157,7 @@ private:
 
 
 //
-
+  unsigned int verbosity_;
   GenericTriggerEventFlag* num_genTriggerEventFlag_;
   GenericTriggerEventFlag* den_genTriggerEventFlag_;
   PrescaleWeightProvider * prescaleWeightProvider_;
@@ -187,12 +189,17 @@ private:
   double mincos;
   double minDS;
   edm::EDGetTokenT<edm::TriggerResults>  hltTrigResTag_;
-  edm::EDGetTokenT<trigger::TriggerEvent>  hltInputTag_;
+  /* edm::EDGetTokenT<trigger::TriggerEvent>  hltInputTag_; */
+  edm::InputTag  hltInputTag_;
   std::vector<std::string> hltpaths_num;
   std::vector<std::string> hltpaths_den;
   StringCutObjectSelector<reco::Track,true>        trSelection_;
   StringCutObjectSelector<reco::Track,true>        trSelection_ref;
   StringCutObjectSelector<reco::Candidate::LorentzVector,true>        DMSelection_ref;
+
+  edm::EDGetTokenT<trigger::TriggerEvent>  hltInputTagToken_;
+  edm::Handle<trigger::TriggerEvent> handleTriggerEvent_;
+  HLTConfigProvider hltConfig_;
 
 };
 
