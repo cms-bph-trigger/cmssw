@@ -47,6 +47,8 @@ BPHMonitor::BPHMonitor( const edm::ParameterSet& iConfig ) :
   , minmassJpsi ( iConfig.getParameter<double>("minmassJpsi" ) )
   , maxmassUpsilon ( iConfig.getParameter<double>("maxmassUpsilon" ) )
   , minmassUpsilon ( iConfig.getParameter<double>("minmassUpsilon" ) )
+  , maxmassTkTk ( iConfig.getParameter<double>("maxmassTkTk" ) )
+  , minmassTkTk ( iConfig.getParameter<double>("minmassTkTk" ) )
   , maxmassJpsiTk ( iConfig.getParameter<double>("maxmassJpsiTk" ) )
   , minmassJpsiTk ( iConfig.getParameter<double>("minmassJpsiTk" ) )
   , kaon_mass ( iConfig.getParameter<double>("kaon_mass" ) )
@@ -713,7 +715,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 		if ((reco::deltaR(t,m) <= min_dR)) continue;
 		if (! itrk1.quality(reco::TrackBase::highPurity)) continue;
 		if (! itrk2.quality(reco::TrackBase::highPurity)) continue;
-		reco::Particle::LorentzVector pB, p1, p2, p3, p4;
+		reco::Particle::LorentzVector pB, pTkTk, p1, p2, p3, p4;
 		double trackMass2 = kaon_mass * kaon_mass;
 		double MuMass2 = mu_mass * mu_mass; // 0.1056583745 *0.1056583745;
 		double e1 = sqrt(m.momentum().Mag2()  + MuMass2 );
@@ -724,6 +726,8 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 		p2 = reco::Particle::LorentzVector(m1.px() , m1.py() , m1.pz() , e2  );
 		p3 = reco::Particle::LorentzVector(itrk1.px(), itrk1.py(), itrk1.pz(), e3  );
 		p4 = reco::Particle::LorentzVector(itrk2.px(), itrk2.py(), itrk2.pz(), e4  );
+		pTkTk = p3 + p4;
+		if (pTkTk.mass() > maxmassTkTk || pTkTk.mass() < minmassTkTk) continue;
 		pB = p1 + p2 + p3 + p4;
 		if ( pB.mass() > maxmassJpsiTk || pB.mass()< minmassJpsiTk) continue;
 		reco::TransientTrack trTT(itrk1, &(*bFieldHandle));
@@ -951,7 +955,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	      if (!trSelection_ref(t)) continue;
 	      if (false && !matchToTrigger(hltpath1,t, handleTriggerEvent)) continue;
 	      const reco::Track& itrk1 = t ; 
-	      if ((reco::deltaR(t,m1) < = min_dR)) continue; // checking overlaping
+	      if ((reco::deltaR(t,m1) <= min_dR)) continue; // checking overlaping
 	      if ((reco::deltaR(t,m) <= min_dR)) continue;
 	      if (! itrk1.quality(reco::TrackBase::highPurity)) continue;
 	      reco::Particle::LorentzVector pB, p1, p2, p3;
@@ -1066,7 +1070,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 		if (! itrk1.quality(reco::TrackBase::highPurity)) continue;
 		if (! itrk2.quality(reco::TrackBase::highPurity)) continue;
 
-		reco::Particle::LorentzVector pB, p1, p2, p3, p4;
+		reco::Particle::LorentzVector pB, pTkTk, p1, p2, p3, p4;
 		double trackMass2 = kaon_mass * kaon_mass;
 		double MuMass2 = mu_mass * mu_mass; // 0.1056583745 *0.1056583745;
 		double e1 = sqrt(m.momentum().Mag2()  + MuMass2 );
@@ -1077,6 +1081,8 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 		p2 = reco::Particle::LorentzVector(m1.px() , m1.py() , m1.pz() , e2  );
 		p3 = reco::Particle::LorentzVector(itrk1.px(), itrk1.py(), itrk1.pz(), e3  );
 		p4 = reco::Particle::LorentzVector(itrk2.px(), itrk2.py(), itrk2.pz(), e4  );
+		pTkTk = p3 + p4;
+		if (pTkTk.mass() > maxmassTkTk || pTkTk.mass() < minmassTkTk) continue;
 		pB = p1 + p2 + p3 + p4;
 		if ( pB.mass() > maxmassJpsiTk || pB.mass()< minmassJpsiTk) continue;
 		reco::TransientTrack trTT(itrk1, &(*bFieldHandle));
@@ -1181,6 +1187,8 @@ void BPHMonitor::fillDescriptions(edm::ConfigurationDescriptions & descriptions)
   desc.add<double>( "minmassJpsi", 3. );
   desc.add<double>( "maxmassUpsilon", 8.1 );
   desc.add<double>( "minmassUpsilon", 8. );
+  desc.add<double>( "maxmassTkTk", 10);
+  desc.add<double>( "minmassTkTk", 0);
   desc.add<double>( "maxmassJpsiTk", 5.46 );
   desc.add<double>( "minmassJpsiTk", 5.1 );
   desc.add<double>( "kaon_mass", 0.493677 );

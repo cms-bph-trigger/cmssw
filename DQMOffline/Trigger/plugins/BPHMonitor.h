@@ -177,6 +177,8 @@ private:
   double minmassJpsi;
   double maxmassUpsilon;
   double minmassUpsilon;
+  double maxmassTkTk;
+  double minmassTkTk;
   double maxmassJpsiTk;
   double minmassJpsiTk;
   double kaon_mass;
