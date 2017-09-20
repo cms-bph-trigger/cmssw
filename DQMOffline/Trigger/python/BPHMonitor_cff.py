@@ -694,6 +694,7 @@ DM2_Jpsi_addTrackTrack_Phi.minmassJpsiTk = cms.double(0.)
 DM2_Jpsi_addTrackTrack_Phi.maxmassJpsiTk = cms.double(99.)
 
 DM2_Jpsi_addTkMuTkMu_Phi = DM2_Jpsi_addTrackTrack_Phi.clone()
+DM2_Jpsi_addTkMuTkMu_Phi.FolderName = cms.string('HLT/BPH/DM2_Jpsi_addTkMuTkMu_Phi/')
 DM2_Jpsi_addTkMuTkMu_Phi.numGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_DoubleMu2_Jpsi_DoubleTkMu0_Phi_v*")
 DM2_Jpsi_addTkMuTkMu_Phi.PrescaleTriggerEventPSet.prescaleWeightHltPaths = cms.vstring("HLT_DoubleMu2_Jpsi_DoubleTkMu0_Phi_v*")
 DM2_Jpsi_addTkMuTkMu_Phi.trSelection_ref = cms.string("")
