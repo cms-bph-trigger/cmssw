@@ -43,7 +43,7 @@
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/HLTReco/interface/TriggerObject.h"
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
-
+#include "CommonTools/TriggerUtils/interface/PrescaleWeightProvider.h"
 
 class GenericTriggerEventFlag;
 
@@ -69,7 +69,7 @@ class BPHMonitor : public DQMEDAnalyzer
 {
 public:
   BPHMonitor( const edm::ParameterSet& );
-  ~BPHMonitor();
+  ~BPHMonitor() override;
   static void fillDescriptions(edm::ConfigurationDescriptions & descriptions);
   static void fillHistoPSetDescription(edm::ParameterSetDescription & pset);
   static void fillHistoLSPSetDescription(edm::ParameterSetDescription & pset);
@@ -158,6 +158,7 @@ private:
 
   GenericTriggerEventFlag* num_genTriggerEventFlag_;
   GenericTriggerEventFlag* den_genTriggerEventFlag_;
+  PrescaleWeightProvider * prescaleWeightProvider_;
   StringCutObjectSelector<reco::Muon,true>        muoSelection_;
   StringCutObjectSelector<reco::Muon,true>        muoSelection_ref;
   StringCutObjectSelector<reco::Muon,true>        muoSelection_tag;
@@ -178,6 +179,10 @@ private:
   double minmassUpsilon;
   double maxmassJpsiTk;
   double minmassJpsiTk;
+  double kaon_mass;
+  double mu_mass;
+  double min_dR;
+
   double minprob;
   double mincos;
   double minDS;
