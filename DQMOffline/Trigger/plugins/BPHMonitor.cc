@@ -241,8 +241,7 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
     bookME(ibooker,muEta_,histname,histtitle, eta_binning_);
     setMETitle(muEta_,trMuPh+"_#eta","events / 0.2");
   }
-  else if (enum_ == 11) {
-    trMuPh = "tr";
+  else {
     histname = trMuPh+"1Pt"; histtitle = trMuPh+"1_P_{t}";
     bookME(ibooker,mu1Pt_,histname,histtitle, pt_binning_);
     setMETitle(mu1Pt_,trMuPh+"_Pt[GeV]","events / 1 GeV");
@@ -266,92 +265,72 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
     histname = trMuPh+"2Eta"; histtitle = trMuPh+"2_Eta";
     bookME(ibooker,mu2Eta_,histname,histtitle, eta_binning_);
     setMETitle(mu2Eta_,trMuPh+"_#eta","events / 0.2");
-  }
 
-  else {
-    histname ="mu1Eta"; histtitle = "mu1Eta";
-    bookME(ibooker,mu1Eta_,histname,histtitle, eta_binning_);
-    setMETitle(mu1Eta_,"mu1#eta","events / 0.2");
+    if (enum_ == 6) {
+      histname = trMuPh+"3Eta"; histtitle = trMuPh+"3Eta";
+      bookME(ibooker,mu3Eta_,histname,histtitle, eta_binning_);
+      setMETitle(mu3Eta_,trMuPh+"3#eta","events / 0.2");
 
-    histname = "mu1Pt"; histtitle = "mu1_P_{t}";
-    bookME(ibooker,mu1Pt_,histname,histtitle, pt_binning_);
-    setMETitle(mu1Pt_,"mu1_Pt[GeV]","events / 1 GeV");
+      histname = trMuPh+"3Pt"; histtitle = trMuPh+"3_P_{t}";
+      bookME(ibooker,mu3Pt_,histname,histtitle, pt_binning_);
+      setMETitle(mu3Pt_,trMuPh+"3_Pt[GeV]","events / 1 GeV");
 
-    histname ="mu1Phi"; histtitle ="mu1Phi";
-    bookME(ibooker,mu1Phi_,histname,histtitle, phi_binning_);
-    setMETitle(mu1Phi_,"mu1_#phi","events / 0.1 rad");
+      histname = trMuPh+"3Phi"; histtitle = trMuPh+"3Phi";
+      bookME(ibooker,mu3Phi_,histname,histtitle, phi_binning_);
+      setMETitle(mu3Phi_,trMuPh+"3_#phi","events / 0.1 rad");
+    }
+    else if (enum_ == 2 || enum_ == 4 || enum_ == 5 || enum_ == 8) {
+      histname = "DiMuEta"; histtitle = "DiMuEta";
+      bookME(ibooker,DiMuEta_,histname,histtitle, eta_binning_);
+      setMETitle(DiMuEta_,"DiMu#eta","events / 0.2");
 
-    histname ="mu2Eta"; histtitle = "mu2Eta";
-    bookME(ibooker,mu2Eta_,histname,histtitle, eta_binning_);
-    setMETitle(mu2Eta_,"mu2#eta","events / 0.2");
+      histname = "DiMuPt"; histtitle = "DiMu_P_{t}";
+      bookME(ibooker,DiMuPt_,histname,histtitle, pt_binning_);
+      setMETitle(DiMuPt_,"DiMu_Pt[GeV]","events / 1 GeV");
 
-    histname = "mu2Pt"; histtitle = "mu2_P_{t}";
-    bookME(ibooker,mu2Pt_,histname,histtitle, pt_binning_);
-    setMETitle(mu2Pt_,"mu2_Pt[GeV]","events / 1 GeV");
+      histname = "DiMuPhi"; histtitle = "DiMuPhi";
+      bookME(ibooker,DiMuPhi_,histname,histtitle, phi_binning_);
+      setMETitle(DiMuPhi_,"DiMu_#phi","events / 0.1 rad");
 
-    histname ="mu2Phi"; histtitle ="mu2Phi";
-    bookME(ibooker,mu2Phi_,histname,histtitle, phi_binning_);
-    setMETitle(mu2Phi_,"mu2_#phi","events / 0.1 rad");
+      if (enum_ == 4 || enum_ == 5) {
+	histname = "DiMudR"; histtitle = "DiMudR";
+	bookME(ibooker,DiMudR_,histname,histtitle, dR_binning_);
+	setMETitle(DiMudR_,"DiMu_#dR","events /");
+	if (enum_ == 4) {
+	  histname = "DiMuMass"; histtitle = "DiMuMass";
+	  bookME(ibooker,DiMuMass_,histname,histtitle, mass_binning_);
+	  setMETitle(DiMuMass_,"DiMu_#mass","events /");
+	}
+      } else if (enum_ == 8) {
+	histname = "DiMuProb"; histtitle = "DiMuProb";
+	bookME(ibooker,DiMuProb_,histname,histtitle, prob_binning_);
+	setMETitle(DiMuProb_,"DiMu_#prob","events /");
 
-    histname ="mu3Eta"; histtitle = "mu3Eta";
-    bookME(ibooker,mu3Eta_,histname,histtitle, eta_binning_);
-    setMETitle(mu3Eta_,"mu3#eta","events / 0.2");
+	histname = "DiMuPVcos"; histtitle = "DiMuPVcos";
+	bookME(ibooker,DiMuPVcos_,histname,histtitle, cos_binning_);
+	setMETitle(DiMuPVcos_,"DiMu_#cosPV","events /");
 
-    histname = "mu3Pt"; histtitle = "mu3_P_{t}";
-    bookME(ibooker,mu3Pt_,histname,histtitle, pt_binning_);
-    setMETitle(mu3Pt_,"mu3_Pt[GeV]","events / 1 GeV");
+	histname = "DiMuDS"; histtitle = "DiMuDS";
+	bookME(ibooker,DiMuDS_,histname,histtitle, ds_binning_);
+	setMETitle(DiMuDS_,"DiMu_#ds","events /");
 
-    histname ="mu3Phi"; histtitle ="mu3Phi";
-    bookME(ibooker,mu3Phi_,histname,histtitle, phi_binning_);
-    setMETitle(mu3Phi_,"mu3_#phi","events / 0.1 rad");
-
-    histname ="DiMuEta"; histtitle = "DiMuEta";
-    bookME(ibooker,DiMuEta_,histname,histtitle, eta_binning_);
-    setMETitle(DiMuEta_,"DiMu#eta","events / 0.2");
-
-    histname = "DiMuPt"; histtitle = "DiMu_P_{t}";
-    bookME(ibooker,DiMuPt_,histname,histtitle, pt_binning_);
-    setMETitle(DiMuPt_,"DiMu_Pt[GeV]","events / 1 GeV");
-
-    histname ="DiMuPhi"; histtitle ="DiMuPhi";
-    bookME(ibooker,DiMuPhi_,histname,histtitle, phi_binning_);
-    setMETitle(DiMuPhi_,"DiMu_#phi","events / 0.1 rad");
-
-    histname ="DiMuPVcos"; histtitle ="DiMuPVcos";
-    bookME(ibooker,DiMuPVcos_,histname,histtitle, cos_binning_);
-    setMETitle(DiMuPVcos_,"DiMu_#cosPV","events /");
-
-    histname ="DiMuProb"; histtitle ="DiMuProb";
-    bookME(ibooker,DiMuProb_,histname,histtitle, prob_binning_);
-    setMETitle(DiMuProb_,"DiMu_#prob","events /");
-
-    histname ="DiMuDS"; histtitle ="DiMuDS";
-    bookME(ibooker,DiMuDS_,histname,histtitle, ds_binning_);
-    setMETitle(DiMuDS_,"DiMu_#ds","events /");
-
-
-    histname ="DiMuDCA"; histtitle ="DiMuDCA";
-    bookME(ibooker,DiMuDCA_,histname,histtitle, dca_binning_);
-    setMETitle(DiMuDCA_,"DiMu_#dca","events /");
-
-    histname ="DiMuMass"; histtitle ="DiMuMass";
-    bookME(ibooker,DiMuMass_,histname,histtitle, mass_binning_);
-    setMETitle(DiMuMass_,"DiMu_#mass","events /");
-
-    histname ="DiMudR"; histtitle ="DiMudR";
-    bookME(ibooker,DiMudR_,histname,histtitle, dR_binning_);
-    setMETitle(DiMudR_,"DiMu_#dR","events /");
-
+	histname = "DiMuDCA"; histtitle = "DiMuDCA";
+	bookME(ibooker,DiMuDCA_,histname,histtitle, dca_binning_);
+	setMETitle(DiMuDCA_,"DiMu_#dca","events /");
+      }
+    } // if (enum_ == 2 || enum_ == 4 || enum_ == 5 || enum_ == 8)
   }
 
   if (trOrMu_) {
-    histname = trMuPh+ "_d0"; histtitle = trMuPh+ "_d0";
-    bookME(ibooker,mud0_,histname,histtitle, d0_binning_);
-    setMETitle(mud0_,trMuPh+"_d0","events / bin");
+    if (false) { // not filled anywhere
+      histname = trMuPh+"_d0"; histtitle = trMuPh+"_d0";
+      bookME(ibooker,mud0_,histname,histtitle, d0_binning_);
+      setMETitle(mud0_,trMuPh+"_d0","events / bin");
 
-    histname = trMuPh+"_z0"; histtitle = trMuPh+"_z0";
-    bookME(ibooker,muz0_,histname,histtitle, z0_binning_);
-    setMETitle(muz0_,trMuPh+"_z0","events / bin");
+      histname = trMuPh+"_z0"; histtitle = trMuPh+"_z0";
+      bookME(ibooker,muz0_,histname,histtitle, z0_binning_);
+      setMETitle(muz0_,trMuPh+"_z0","events / bin");
+    }
   }
 
   // Initialize the GenericTriggerEventFlag
