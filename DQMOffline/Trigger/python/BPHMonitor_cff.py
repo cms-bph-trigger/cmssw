@@ -692,6 +692,14 @@ DM2_Jpsi_addTrackTrack_Phi.minmassTkTk = cms.double(0.920)
 DM2_Jpsi_addTrackTrack_Phi.maxmassTkTk = cms.double(1.120)
 DM2_Jpsi_addTrackTrack_Phi.minmassJpsiTk = cms.double(0.)
 DM2_Jpsi_addTrackTrack_Phi.maxmassJpsiTk = cms.double(99.)
+DM2_Jpsi_addTrackTrack_Phi.histoPSet.ptPSet = cms.PSet(
+    edges = cms.vdouble(-0.5, 0, 0.5, 1, 1.5, 2, 4, 8, 10, 12, 14, 16, 18, 20),
+)
+DM2_Jpsi_addTrackTrack_Phi.histoPSet.phiPSet = cms.PSet(
+  nbins = cms.int32 ( 32 ),
+  xmin  = cms.double(-3.2),
+  xmax  = cms.double( 3.2),
+)
 
 DM2_Jpsi_addTkMuTkMu_Phi = DM2_Jpsi_addTrackTrack_Phi.clone()
 DM2_Jpsi_addTkMuTkMu_Phi.FolderName = cms.string('HLT/BPH/DM2_Jpsi_addTkMuTkMu_Phi/')
