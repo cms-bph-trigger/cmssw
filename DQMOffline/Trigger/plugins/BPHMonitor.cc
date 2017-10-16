@@ -26,6 +26,7 @@ BPHMonitor::BPHMonitor( const edm::ParameterSet& iConfig ) :
   , ds_binning_           ( getHistoPSet (iConfig.getParameter<edm::ParameterSet>("histoPSet").getParameter<edm::ParameterSet>   ("dsPSet")     ) )
   , cos_binning_           ( getHistoPSet (iConfig.getParameter<edm::ParameterSet>("histoPSet").getParameter<edm::ParameterSet>   ("cosPSet")     ) )
   , prob_binning_           ( getHistoPSet (iConfig.getParameter<edm::ParameterSet>("histoPSet").getParameter<edm::ParameterSet>   ("probPSet")     ) )
+  , verbosity_( iConfig.getParameter<unsigned int>("verbosityLevel") )
   , num_genTriggerEventFlag_(new GenericTriggerEventFlag(iConfig.getParameter<edm::ParameterSet>("numGenericTriggerEventPSet"),consumesCollector(), *this))
   , den_genTriggerEventFlag_(new GenericTriggerEventFlag(iConfig.getParameter<edm::ParameterSet>("denGenericTriggerEventPSet"),consumesCollector(), *this))
   , prescaleWeightProvider_( new PrescaleWeightProvider( iConfig.getParameter<edm::ParameterSet>("PrescaleTriggerEventPSet"),consumesCollector(), *this))
@@ -56,7 +57,8 @@ BPHMonitor::BPHMonitor( const edm::ParameterSet& iConfig ) :
   , mincos     ( iConfig.getParameter<double>("mincos" )     )
   , minDS     ( iConfig.getParameter<double>("minDS" )     )
   , hltTrigResTag_ (mayConsume<edm::TriggerResults>( iConfig.getParameter<edm::ParameterSet>("denGenericTriggerEventPSet").getParameter<edm::InputTag>("hltInputTag")))
-  , hltInputTag_ (mayConsume<trigger::TriggerEvent>( iConfig.getParameter<edm::InputTag>("hltTriggerSummaryAOD")))
+  // , hltInputTag_ (mayConsume<trigger::TriggerEvent>( iConfig.getParameter<edm::InputTag>("hltTriggerSummaryAOD")))
+  , hltInputTag_ ( iConfig.getParameter<edm::InputTag>("hltTriggerSummaryAOD"))
   , hltpaths_num     ( iConfig.getParameter<edm::ParameterSet>("numGenericTriggerEventPSet").getParameter<std::vector<std::string>>("hltPaths"))
   , hltpaths_den     ( iConfig.getParameter<edm::ParameterSet>("denGenericTriggerEventPSet").getParameter<std::vector<std::string>>("hltPaths"))
   , trSelection_ ( iConfig.getParameter<std::string>("muoSelection") )
@@ -123,7 +125,11 @@ BPHMonitor::BPHMonitor( const edm::ParameterSet& iConfig ) :
   DiMudR_.numerator   = nullptr;
   DiMudR_.denominator = nullptr;
 
+  hltInputTagToken_  = mayConsume<trigger::TriggerEvent>(hltInputTag_);
 
+  //SW
+  TCo_.numerator = nullptr;
+  TCo_.denominator = nullptr;
 }
 
 BPHMonitor::~BPHMonitor()
@@ -218,7 +224,6 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
 				edm::Run const        & iRun,
 				edm::EventSetup const & iSetup) 
 {  
-  
   std::string histname, histtitle, istnp, trMuPh;
   bool Ph_; if (enum_==7) Ph_ = true;
   if (tnp_) istnp = "Tag_and_Probe/"; else istnp = "";
@@ -340,7 +345,6 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
     histname ="DiMudR"; histtitle ="DiMudR";
     bookME(ibooker,DiMudR_,histname,histtitle, dR_binning_);
     setMETitle(DiMudR_,"DiMu_#dR","events / ");
-
   }
 
   if (trOrMu_) {
@@ -353,10 +357,23 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
     setMETitle(muz0_,trMuPh+"_z0","events/bin ");
   }
 
+  //SW
+  // std::cout << "SWdebug: " << iRun.runAuxiliary().run() << std::endl;
+  histname = "TCo"; histtitle="TCo";
+  unsigned int currentRun = iRun.runAuxiliary().run();
+  MEbinning TCo_binning_(1,currentRun,currentRun+1);
+  bookME(ibooker,TCo_,histname,histtitle, TCo_binning_);
+  setMETitle(TCo_,"run number","trigger coincidence");
+
   // Initialize the GenericTriggerEventFlag
   if ( num_genTriggerEventFlag_ && num_genTriggerEventFlag_->on() ) num_genTriggerEventFlag_->initRun( iRun, iSetup );
   if ( den_genTriggerEventFlag_ && den_genTriggerEventFlag_->on() ) den_genTriggerEventFlag_->initRun( iRun, iSetup );
   prescaleWeightProvider_->initRun( iRun, iSetup );
+
+  bool hltChanged=false;
+  //if the GenericTriggerEventFlag was successfully initialised, this should be too
+  if ( !hltConfig_.init( iRun, iSetup, hltInputTag_.process(), hltChanged ) )
+    {std::cout << "ERROR: hltConfig could not be initialised!" << std::endl;}
 }
 
 #include "FWCore/Framework/interface/ESHandle.h"
@@ -381,24 +398,26 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 
   edm::Handle<edm::TriggerResults> handleTriggerTrigRes; 
 
-  edm::Handle<trigger::TriggerEvent> handleTriggerEvent; 
+  // edm::Handle<trigger::TriggerEvent> handleTriggerEvent; 
+  iEvent.getByToken( hltInputTagToken_, handleTriggerEvent_);
+
   edm::ESHandle<MagneticField> bFieldHandle;
   // Filter out events if Trigger Filtering is requested
   double PrescaleWeight = prescaleWeightProvider_->prescaleWeight( iEvent, iSetup );  
   
   if (tnp_>0) {//TnP method 
     if (den_genTriggerEventFlag_->on() && ! den_genTriggerEventFlag_->accept( iEvent, iSetup) ) return;
-    iEvent.getByToken( hltInputTag_, handleTriggerEvent);
-    if (handleTriggerEvent->sizeFilters()== 0)return;
+    // iEvent.getByToken( hltInputTag_, handleTriggerEvent_);
+    if (handleTriggerEvent_->sizeFilters()== 0)return;
     const std::string & hltpath = hltpaths_num[0]; 
     std::vector<reco::Muon> tagMuons;
     for ( auto const & m : *muoHandle ) {//applying tag selection 
-      if(false && !matchToTrigger(hltpath,m, handleTriggerEvent)) continue;
+      if(false && !matchToTrigger(hltpath,m, handleTriggerEvent_)) continue;
       if ( muoSelection_ref( m ) ) tagMuons.push_back(m);
     }
     for (int i = 0; i<int(tagMuons.size());i++){
       for ( auto const & m : *muoHandle ) { 
-        if(false && !matchToTrigger(hltpath,m, handleTriggerEvent)) continue;
+        if(false && !matchToTrigger(hltpath,m, handleTriggerEvent_)) continue;
         if ((tagMuons[i].pt() == m.pt()))continue;//not the same  
         if ((tagMuons[i].p4()+m.p4()).M() >minmass_&& (tagMuons[i].p4()+m.p4()).M() <maxmass_){//near to J/psi mass
           muPhi_.denominator->Fill(m.phi());
@@ -418,16 +437,27 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
   }  
   else{//reference method
     if (den_genTriggerEventFlag_->on() && ! den_genTriggerEventFlag_->accept( iEvent, iSetup) ) return;
-    iEvent.getByToken( hltInputTag_, handleTriggerEvent);
-    if (handleTriggerEvent->sizeFilters()== 0)return;
+    // iEvent.getByToken( hltInputTag_, handleTriggerEvent);
+    if (handleTriggerEvent_->sizeFilters()== 0)return;
+    // if ( TCo_.denominator==0) 
+    //   {
+    // 	std::cout << "CAREFUL: object 0" << std::endl;
+    // 	std::cout << "DiMuMass_: " << DiMuMass_.denominator << std::endl;
+    // 	std::cout << "enum: " << enum_ << std::endl;
+    // 	std::cout << "tnp: " << tnp_ << std::endl;
+    //   }
+    // else {TCo_.denominator->Fill(iEvent.eventAuxiliary().run());}
+    TCo_.denominator->Fill(iEvent.eventAuxiliary().run());
     const std::string & hltpath = hltpaths_den[0]; 
     for (auto const & m : *muoHandle ) {
-      if(false && !matchToTrigger(hltpath,m, handleTriggerEvent)) continue;
+      // if(false && !matchToTrigger(hltpath,m, handleTriggerEvent_)) continue;
+      if(!matchToTrigger(hltpath,m)) continue;
       if(!muoSelection_ref(m))continue;   
       for (auto const & m1 : *muoHandle ) {
         if (m1.pt() == m.pt())continue;
         if(!muoSelection_ref(m1))continue;   
-        if(false && !matchToTrigger(hltpath,m1, handleTriggerEvent)) continue;
+        // if(false && !matchToTrigger(hltpath,m1, handleTriggerEvent_)) continue;
+        if(!matchToTrigger(hltpath,m1)) continue;
         if (enum_<10){
           if (!DMSelection_ref(m1.p4() + m.p4()))continue;
           if (m.charge()*m1.charge()>0 )continue;
@@ -545,7 +575,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
             if (DiMuMass> maxmassUpsilon || DiMuMass< minmassUpsilon)continue;
           }
           for (auto const & m2 : *muoHandle) {//triple muon paths
-            if(false && !matchToTrigger(hltpath,m2, handleTriggerEvent)) continue;
+            if(false && !matchToTrigger(hltpath,m2, handleTriggerEvent_)) continue;
             if (m2.pt() == m.pt())continue;
             mu1Phi_.denominator->Fill(m.phi());
             mu1Eta_.denominator->Fill(m.eta());
@@ -591,7 +621,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	    for (auto const & t : *trHandle) {
       
 	      if(!trSelection_ref(t))continue;
-	      if(false && !matchToTrigger(hltpath,t, handleTriggerEvent)) continue;
+	      if(false && !matchToTrigger(hltpath,t, handleTriggerEvent_)) continue;
               const reco::Track& itrk1       = t ;                                                
               
               if((reco::deltaR(t,m1) <= min_dR))continue;//checking overlaping
@@ -652,7 +682,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	  if (trHandle.isValid()){
 	    for (auto const & t : *trHandle) {
 	      if(!trSelection_ref(t))continue;
-	      if(false && !matchToTrigger(hltpath,t, handleTriggerEvent)) continue;
+	      if(false && !matchToTrigger(hltpath,t, handleTriggerEvent_)) continue;
 	      const reco::Track& itrk1       = t ;                                                
 	      if((reco::deltaR(t,m1) <= min_dR))continue;//checking overlaping
 	      if((reco::deltaR(t,m) <= min_dR)) continue;
@@ -703,10 +733,10 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	    ////////////////////////
 	    for (auto const & t : *trHandle) {
 	      if(!trSelection_ref(t))continue;
-	      if(false && !matchToTrigger(hltpath,t, handleTriggerEvent)) continue;
+	      if(false && !matchToTrigger(hltpath,t, handleTriggerEvent_)) continue;
 	      for (auto const & t1 : *trHandle) {
 		if(!trSelection_ref(t1))continue;
-		if(false && !matchToTrigger(hltpath,t1, handleTriggerEvent)) continue;
+		if(false && !matchToTrigger(hltpath,t1, handleTriggerEvent_)) continue;
 		const reco::Track& itrk1       = t ;                                                
 		const reco::Track& itrk2       = t1 ;                                                
 		if((reco::deltaR(t,m1) <= min_dR))continue;//checking overlaping
@@ -775,7 +805,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
     if (enum_ == 7){//photons
       const std::string & hltpath = hltpaths_den[0];
       for (auto const & p : *phHandle) {
-	      if(false && !matchToTrigger(hltpath,p, handleTriggerEvent)) continue;
+	      if(false && !matchToTrigger(hltpath,p, handleTriggerEvent_)) continue;
         phPhi_.denominator->Fill(p.phi());
         phEta_.denominator->Fill(p.eta());
         phPt_.denominator ->Fill(p.pt());
@@ -786,18 +816,21 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
     /////////
     //filling numerator hists
     if (num_genTriggerEventFlag_->on() && ! num_genTriggerEventFlag_->accept( iEvent, iSetup) ) return;
-    iEvent.getByToken( hltInputTag_, handleTriggerEvent);
-    if (handleTriggerEvent->sizeFilters()== 0)return;
+    // TCo_.numerator->Fill(1);
+    // iEvent.getByToken( hltInputTag_, handleTriggerEvent);
+    if (handleTriggerEvent_->sizeFilters()== 0)return;
     const std::string & hltpath1 = hltpaths_num[0]; 
     for (auto const & m : *muoHandle ) {
-      if(false && !matchToTrigger(hltpath1,m, handleTriggerEvent)) continue;
+      // if(false && !matchToTrigger(hltpath1,m, handleTriggerEvent_)) continue;
+      if(!matchToTrigger(hltpath1,m)) continue;
       if(!muoSelection_ref(m))continue;   
       for (auto const & m1 : *muoHandle ) {
 	if (seagull_ && ((m.charge()* deltaPhi(m.phi(), m1.phi())) > 0.) )continue;
 	if (m.charge()*m1.charge()>0 )continue;
 	if (m1.pt() == m.pt())continue;
 	if(!muoSelection_ref(m1))continue;   
-	if(false && !matchToTrigger(hltpath1,m1, handleTriggerEvent)) continue;
+	// if(false && !matchToTrigger(hltpath1,m1, handleTriggerEvent_)) continue;
+	if(!matchToTrigger(hltpath1,m1)) continue;
 	if (!DMSelection_ref(m1.p4() + m.p4()))continue;
 	iSetup.get<IdealMagneticFieldRecord>().get(bFieldHandle);
 	const reco::BeamSpot& vertexBeamSpot = *beamSpot;
@@ -912,7 +945,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	    if (DiMuMass> maxmassUpsilon || DiMuMass< minmassUpsilon)continue;
 	  }
 	  for (auto const & m2 : *muoHandle) {//triple muon paths
-	    if(false && !matchToTrigger(hltpath1,m2, handleTriggerEvent)) continue;
+	    if(false && !matchToTrigger(hltpath1,m2, handleTriggerEvent_)) continue;
 	    if (m2.pt() == m.pt())continue;
 	    mu1Phi_.numerator->Fill(m.phi(),PrescaleWeight);
 	    mu1Eta_.numerator->Fill(m.eta(),PrescaleWeight);
@@ -950,7 +983,9 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	  if (trHandle.isValid()){
 	    for (auto const & t : *trHandle) {
 	      if(!trSelection_ref(t))continue;
-	      if(false && !matchToTrigger(hltpath1,t, handleTriggerEvent)) continue;
+	      std::cout << "SWdebug" << std::endl;
+	      // if(false && !matchToTrigger(hltpath1,t, handleTriggerEvent_)) continue;
+	      if(!matchToTrigger(hltpath1,t,"",{321})) continue;
 	      const reco::Track& itrk1       = t ;                                                
 	      if((reco::deltaR(t,m1) <= min_dR))continue;//checking overlaping
 	      if((reco::deltaR(t,m) <= min_dR)) continue;
@@ -1004,7 +1039,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	  if (trHandle.isValid()){
 	    for (auto const & t : *trHandle) {
 	      if(!trSelection_ref(t))continue;
-	      if(false && !matchToTrigger(hltpath1,t, handleTriggerEvent)) continue;
+	      if(false && !matchToTrigger(hltpath1,t, handleTriggerEvent_)) continue;
 	      const reco::Track& itrk1       = t ;                                                
 	      if((reco::deltaR(t,m1) <= min_dR))continue;//checking overlaping
 	      if((reco::deltaR(t,m) <= min_dR)) continue;
@@ -1055,10 +1090,10 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	  if (trHandle.isValid()){
 	    for (auto const & t : *trHandle) {
 	      if(!trSelection_ref(t))continue;
-	      if(false && !matchToTrigger(hltpath1,t, handleTriggerEvent)) continue;
+	      if(false && !matchToTrigger(hltpath1,t, handleTriggerEvent_)) continue;
 	      for (auto const & t1 : *trHandle) {
 		if(!trSelection_ref(t1))continue;
-		if(false && !matchToTrigger(hltpath1,t1, handleTriggerEvent)) continue;
+		if(false && !matchToTrigger(hltpath1,t1, handleTriggerEvent_)) continue;
 		const reco::Track& itrk1       = t ;
 		const reco::Track& itrk2       = t1 ;
 		if((reco::deltaR(t,m1) <= min_dR))continue;//checking overlaping
@@ -1126,7 +1161,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
     if (enum_ == 7){//photons
       const std::string &hltpath = hltpaths_num[0];
       for (auto const & p : *phHandle) {
-        if(false && !matchToTrigger(hltpath,p, handleTriggerEvent)) continue;
+        if(false && !matchToTrigger(hltpath,p, handleTriggerEvent_)) continue;
         phPhi_.numerator->Fill(p.phi(),PrescaleWeight);
         phEta_.numerator->Fill(p.eta(),PrescaleWeight);
         phPt_.numerator ->Fill(p.pt(),PrescaleWeight);
@@ -1254,8 +1289,10 @@ void BPHMonitor::fillDescriptions(edm::ConfigurationDescriptions & descriptions)
   histoPSet.add<edm::ParameterSetDescription>("probPSet", probPSet);
   desc.add<edm::ParameterSetDescription>("histoPSet",histoPSet);
 
+  desc.add<unsigned int>("verbosityLevel",0);
   descriptions.add("bphMonitoring", desc);
 }
+
 template <typename T>
 bool BPHMonitor::matchToTrigger(const std::string  &theTriggerName , T t, edm::Handle<trigger::TriggerEvent> handleTriggerEvent){
   //bool BPHMonitor::matchToTrigger(std::string theTriggerName,T t, edm::Handle<trigger::TriggerEventWithRefs> handleTriggerEvent){
@@ -1283,6 +1320,114 @@ bool BPHMonitor::matchToTrigger(const std::string  &theTriggerName , T t, edm::H
     return matchedToTrigger;
   }
   else {cout<<theTriggerName<<"\t\tNo HLT filters"<<endl; return false;}
+}
+
+template <typename T>
+bool BPHMonitor::matchToTrigger(const std::string  &theTriggerName , T t, std::string filterName, std::vector<unsigned int> filterID){
+  //verbosity levels: >42 to print details // >1337 to print the objects of all filters in the trigger path
+
+  bool matched = false;
+  //validity check(s)
+  if ( !hltConfig_.inited() ) 
+    {std::cout << "WARNING: hltConfig uninitialised." << std::endl;return false;}
+  
+  if ( verbosity_>42 ) 
+    {
+      std::cout << std::endl << "Performing trigger matching." << std::endl;  
+      std::cout << "trying to match: pt/eta/phi: " << t.pt() << "/" << t.eta() << "/" << t.phi() << std::endl;
+    }
+
+  //Find the precise trigger name
+  const std::string trigger_name_tmp = theTriggerName.substr(0,theTriggerName.find("v*"));
+  const unsigned int Ntriggers(hltConfig_.size());
+  std::string trigger_name = "";
+  for (unsigned int i=0;i<Ntriggers;i++)
+    {
+      trigger_name = hltConfig_.triggerName(i);
+      if ( trigger_name.find(trigger_name_tmp) != std::string::npos ) 
+	{break;}
+    }
+  if ( trigger_name=="" ) 
+    {std::cout << "WARNING: Could not find the trigger name." << std::endl;}
+
+  const unsigned int trigger_index = hltConfig_.triggerIndex(trigger_name);
+  if (verbosity_>42 ) 
+    {std::cout << "trigger name: " << trigger_name << " index: " << trigger_index << std::endl;}
+
+  //loop over all the modules for this trigger
+  //by default use the last one
+  unsigned int Nmodules = hltConfig_.size(trigger_index);
+  const vector<string>& moduleLabels(hltConfig_.moduleLabels(trigger_index));
+  if (verbosity_>42 )
+    {std::cout << "#filters: " << handleTriggerEvent_->sizeFilters() << std::endl;}
+  unsigned int fIdx=0;
+  unsigned int module_label_index=0;
+  for (unsigned int i=0;i<Nmodules;i++)
+    {
+      const unsigned int tmp_fIdx = handleTriggerEvent_->filterIndex(edm::InputTag(moduleLabels[i],"",hltInputTag_.process()));
+      if ( tmp_fIdx< handleTriggerEvent_->sizeFilters() ) //index of not used filters are set to sizeFilters()
+	{
+	  fIdx = tmp_fIdx;
+	  module_label_index = i;
+	  if ( filterName==moduleLabels[i] ) {break;}
+	  if ( verbosity_>1337 )
+	    {
+	      //print out the objects for all the filters
+	      std::cout << "module label: " << moduleLabels[module_label_index] << " (type: " << hltConfig_.moduleType(moduleLabels[module_label_index]) << ")" << " index: " << fIdx <<std::endl;
+	      const trigger::Keys& KEYS(handleTriggerEvent_->filterKeys(fIdx));
+	      const trigger::size_type nK(KEYS.size());
+	      const trigger::TriggerObjectCollection& TOC(handleTriggerEvent_->getObjects());
+	      for (trigger::size_type i=0; i!=nK; ++i) 
+	        {
+	          const trigger::TriggerObject& TO(TOC[KEYS[i]]);	
+		  //filter for IDs
+		  if ( filterID.size()>0 )
+		    {
+		      bool invalidID=true;
+		      for ( int fID : filterID )
+			{if ( fID == TMath::Abs(TO.id()) ) {invalidID=false;}}
+		      if ( invalidID ) {continue;}
+		    }
+	          std::cout << "   index: " << i << " key: " << KEYS[i] << ": id: "
+	      		<< TO.id() << " pt: " << TO.pt() << " eta: " << TO.eta() << " phi: " << TO.phi() << " mass: " << TO.mass()
+	      		<< std::endl;
+	        }
+	    }//verbosity
+	}//good index
+    }
+
+  //loop over all the objects in the filter of choice
+  if (verbosity_>42 && verbosity_<=1337 )
+    {std::cout << "module label: " << moduleLabels[module_label_index] << " (type: " << hltConfig_.moduleType(moduleLabels[module_label_index]) << ")" << " index: " << fIdx <<std::endl;}
+  const trigger::Keys& KEYS(handleTriggerEvent_->filterKeys(fIdx));
+  const trigger::size_type nK(KEYS.size());
+  const trigger::TriggerObjectCollection& TOC(handleTriggerEvent_->getObjects());
+  for (trigger::size_type i=0; i!=nK; ++i) 
+    {
+      const trigger::TriggerObject& TO(TOC[KEYS[i]]);
+      //filter for IDs
+      if ( filterID.size()>0 )
+	{
+	  bool invalidID=true;
+	  for ( int fID : filterID )
+	    {if ( fID == TMath::Abs(TO.id()) ) {invalidID=false;}}
+	  if ( invalidID ) {continue;}
+	}
+      if (verbosity_>42 && verbosity_<=1337 )
+	{	
+	  std::cout << "   index: " << i << " key: " << KEYS[i] << ": id: "
+		    << TO.id() << " pt: " << TO.pt() << " eta: " << TO.eta() << " phi: " << TO.phi() << " mass: " << TO.mass()
+		    << std::endl;
+	}
+      //perform matching: deltaR and pt check
+      if( (reco::deltaR(t.eta(), t.phi(),TO.eta(),TO.phi()) <= 0.2) && (TMath::Abs(t.pt()-TO.pt()) < 0.12) )
+	{
+	  if ( verbosity_>42 ) {std::cout << "matched!" << std::endl;}
+	  matched = true;
+	}
+      
+    }
+  return matched;
 }
 
 

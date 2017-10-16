@@ -44,9 +44,9 @@ hltBPHmonitoring.histoPSet.dRPSet = cms.PSet(
 )
 
 hltBPHmonitoring.histoPSet.massPSet = cms.PSet(
-  nbins = cms.int32 ( 30 ),
+  nbins = cms.int32 ( 100 ),
   xmin  = cms.double(  0),
-  xmax  = cms.double(30.0),
+  xmax  = cms.double(10.0),
 )
 hltBPHmonitoring.histoPSet.dcaPSet = cms.PSet(
   nbins = cms.int32 ( 40 ),
@@ -70,6 +70,11 @@ hltBPHmonitoring.histoPSet.probPSet = cms.PSet(
   xmin  = cms.double(  0),
   xmax  = cms.double(1),
 )
+# hltBPHmonitoring.histoPSet.fls3dPSet = cms.PSet(
+#     nbins = cms.int32(56),
+#     xmin = cms.double(0),
+#     xmax = cms.double(15),
+# )
 
 hltBPHmonitoring.tracks       = cms.InputTag("generalTracks") # tracks??
 hltBPHmonitoring.offlinePVs      = cms.InputTag("offlinePrimaryVertices") # PVs
@@ -110,4 +115,5 @@ hltBPHmonitoring.denGenericTriggerEventPSet.hltPaths  = cms.vstring( "HLT_Mu7p5_
 hltBPHmonitoring.denGenericTriggerEventPSet.andOrDcs      = cms.bool( False )
 hltBPHmonitoring.denGenericTriggerEventPSet.errorReplyDcs = cms.bool( True )
 hltBPHmonitoring.denGenericTriggerEventPSet.verbosityLevel = cms.uint32(0)
+hltBPHmonitoring.verbosityLevel = cms.uint32(1338)
 
