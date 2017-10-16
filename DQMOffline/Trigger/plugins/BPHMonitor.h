@@ -155,6 +155,8 @@ private:
   METME  DiMuMass_   ;
   METME  DiMudR_   ;
 
+  METME TCo_;
+
 
 //
   unsigned int verbosity_;
@@ -200,6 +202,7 @@ private:
   edm::EDGetTokenT<trigger::TriggerEvent>  hltInputTagToken_;
   edm::Handle<trigger::TriggerEvent> handleTriggerEvent_;
   HLTConfigProvider hltConfig_;
+
 
 };
 

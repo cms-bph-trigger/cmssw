@@ -448,19 +448,28 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
     //   }
     // else {TCo_.denominator->Fill(iEvent.eventAuxiliary().run());}
     TCo_.denominator->Fill(iEvent.eventAuxiliary().run());
+    if ( hltpaths_den[0].find("HLT_DoubleMu4_3_Bs")!=std::string::npos )
+      {std::cout << "SWdebug: filling tco_den (for Bs)" << std::endl;}
     const std::string & hltpath = hltpaths_den[0]; 
-    for (auto const & m : *muoHandle ) {
+    unsigned int muonCollectionSize = (*muoHandle).size();
+    // for (auto const & m : *muoHandle ) {
+    for ( unsigned int m1IT=0;m1IT<muonCollectionSize;m1IT++ ) {
+      auto const & m = (*muoHandle)[m1IT];
+      if ( verbosity_>10 ) {std::cout << "m1 index: " << m1IT << std::endl;}
       // if(false && !matchToTrigger(hltpath,m, handleTriggerEvent_)) continue;
-      if(!matchToTrigger(hltpath,m)) continue;
-      if(!muoSelection_ref(m))continue;   
-      for (auto const & m1 : *muoHandle ) {
-        if (m1.pt() == m.pt())continue;
-        if(!muoSelection_ref(m1))continue;   
-        // if(false && !matchToTrigger(hltpath,m1, handleTriggerEvent_)) continue;
-        if(!matchToTrigger(hltpath,m1)) continue;
+      if(!matchToTrigger(hltpath,m)) {if ( verbosity_>10 ) {std::cout << "FAILED trigger matching." << std::endl;}continue;}
+      if(!muoSelection_ref(m)) {if ( verbosity_>10 ) {std::cout << "FAILED muon selection." << std::endl;}continue;}
+      // for (auto const & m1 : *muoHandle ) {
+      for ( unsigned int m2IT=m1IT+1;m2IT<muonCollectionSize;m2IT++ ) {
+	auto const & m1 = (*muoHandle)[m2IT];
+	if ( verbosity_>10 ) {std::cout << "m2 index: " << m2IT << std::endl;}
+        // if (m1.pt() == m.pt())continue;
+        if(!muoSelection_ref(m1)) {if ( verbosity_>10 ) {std::cout << "FAILED muon selection." << std::endl;}continue;}
+	// if(false && !matchToTrigger(hltpath,m1, handleTriggerEvent_)) continue;
+	if(!matchToTrigger(hltpath,m1)) {if ( verbosity_>10 ) {std::cout << "FAILED trigger matching." << std::endl;}continue;}
         if (enum_<10){
-          if (!DMSelection_ref(m1.p4() + m.p4()))continue;
-          if (m.charge()*m1.charge()>0 )continue;
+          if (!DMSelection_ref(m1.p4() + m.p4())) {if ( verbosity_>10 ) {std::cout << "FAILED DiMu cuts" << std::endl;}continue;}
+          if (m.charge()*m1.charge()>0 ) {if ( verbosity_>10 ) {std::cout << "FAILED charge requirement." << std::endl;}continue;}
         }
         iSetup.get<IdealMagneticFieldRecord>().get(bFieldHandle);
         const reco::BeamSpot& vertexBeamSpot = *beamSpot;
@@ -527,13 +536,17 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           mu2Pt_.denominator ->Fill(m1.pt());
           break; 
         case 4:
-          if (dimuonCL<minprob)continue;
+          if (dimuonCL<minprob) {if ( verbosity_>10 ) {std::cout << "FAILED minprob" << std::endl;}continue;}
           DiMuMass_.denominator ->Fill(DiMuMass);
+	  if ( hltpaths_den[0].find("HLT_DoubleMu4_3_Bs")!=std::string::npos )
+	    {std::cout << "SWdebug: filling DiMuMass_den (Bs)" << std::endl;}
           if ((Jpsi_) && (!Upsilon_)){
-            if (DiMuMass> maxmassJpsi || DiMuMass< minmassJpsi)continue;
+            if (DiMuMass> maxmassJpsi || DiMuMass< minmassJpsi) 
+	      {if ( verbosity_>10 ) {std::cout << "FAILED jpsi mass requirement." << std::endl;}continue;}
           }
           if ((!Jpsi_) && (Upsilon_)){
-            if (DiMuMass> maxmassUpsilon || DiMuMass< minmassUpsilon)continue;
+            if (DiMuMass> maxmassUpsilon || DiMuMass< minmassUpsilon)
+	      {if ( verbosity_>10 ) {std::cout << "FAILED upsilon mass requirement." << std::endl;}continue;}
           }
           mu1Phi_.denominator->Fill(m.phi());
           mu1Eta_.denominator->Fill(m.eta());
@@ -797,9 +810,9 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	    }
 	  }
 	  break;
-	} 
-      }
-    }
+	} //switch(enum_)
+      }//m1
+    }//m
 
 
     if (enum_ == 7){//photons
@@ -816,18 +829,29 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
     /////////
     //filling numerator hists
     if (num_genTriggerEventFlag_->on() && ! num_genTriggerEventFlag_->accept( iEvent, iSetup) ) return;
-    // TCo_.numerator->Fill(1);
     // iEvent.getByToken( hltInputTag_, handleTriggerEvent);
     if (handleTriggerEvent_->sizeFilters()== 0)return;
+    TCo_.numerator->Fill(iEvent.eventAuxiliary().run());
+    if ( hltpaths_num[0].find("HLT_DoubleMu4_3_Bs")!=std::string::npos )
+      {std::cout << "SWdebug: filling tco_num (for Bs)" << std::endl;}
     const std::string & hltpath1 = hltpaths_num[0]; 
-    for (auto const & m : *muoHandle ) {
-      // if(false && !matchToTrigger(hltpath1,m, handleTriggerEvent_)) continue;
+    // for (auto const & m : *muoHandle ) {
+    //   // if(false && !matchToTrigger(hltpath1,m, handleTriggerEvent_)) continue;
+    //   if(!matchToTrigger(hltpath1,m)) continue;
+    //   if(!muoSelection_ref(m))continue;   
+    //   for (auto const & m1 : *muoHandle ) {
+    // for (auto const & m : *muoHandle ) {
+    for ( unsigned int m1IT=0;m1IT<muonCollectionSize;m1IT++ ) {
+      auto const & m = (*muoHandle)[m1IT];
+      // if(false && !matchToTrigger(hltpath,m, handleTriggerEvent_)) continue;
       if(!matchToTrigger(hltpath1,m)) continue;
       if(!muoSelection_ref(m))continue;   
-      for (auto const & m1 : *muoHandle ) {
+      // for (auto const & m1 : *muoHandle ) {
+      for ( unsigned int m2IT=m1IT+1;m2IT<muonCollectionSize;m2IT++ ) {
+	auto const & m1 = (*muoHandle)[m2IT];
 	if (seagull_ && ((m.charge()* deltaPhi(m.phi(), m1.phi())) > 0.) )continue;
 	if (m.charge()*m1.charge()>0 )continue;
-	if (m1.pt() == m.pt())continue;
+	// if (m1.pt() == m.pt())continue;
 	if(!muoSelection_ref(m1))continue;   
 	// if(false && !matchToTrigger(hltpath1,m1, handleTriggerEvent_)) continue;
 	if(!matchToTrigger(hltpath1,m1)) continue;
@@ -983,7 +1007,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	  if (trHandle.isValid()){
 	    for (auto const & t : *trHandle) {
 	      if(!trSelection_ref(t))continue;
-	      std::cout << "SWdebug" << std::endl;
+	      // std::cout << "SWdebug" << std::endl;
 	      // if(false && !matchToTrigger(hltpath1,t, handleTriggerEvent_)) continue;
 	      if(!matchToTrigger(hltpath1,t,"",{321})) continue;
 	      const reco::Track& itrk1       = t ;                                                
