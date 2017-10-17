@@ -30,6 +30,7 @@ BPHMonitor::BPHMonitor( const edm::ParameterSet& iConfig ) :
   , num_genTriggerEventFlag_(new GenericTriggerEventFlag(iConfig.getParameter<edm::ParameterSet>("numGenericTriggerEventPSet"),consumesCollector(), *this))
   , den_genTriggerEventFlag_(new GenericTriggerEventFlag(iConfig.getParameter<edm::ParameterSet>("denGenericTriggerEventPSet"),consumesCollector(), *this))
   , prescaleWeightProvider_( new PrescaleWeightProvider( iConfig.getParameter<edm::ParameterSet>("PrescaleTriggerEventPSet"),consumesCollector(), *this))
+  , prescales_( iConfig.getParameter<edm::ParameterSet>("prescalePS"), consumesCollector(), *this)
   , muoSelection_ ( iConfig.getParameter<std::string>("muoSelection") )
   , muoSelection_ref ( iConfig.getParameter<std::string>("muoSelection_ref") )
   , muoSelection_tag ( iConfig.getParameter<std::string>("muoSelection_tag") )
@@ -130,10 +131,15 @@ BPHMonitor::BPHMonitor( const edm::ParameterSet& iConfig ) :
   //SW
   TCo_.numerator = nullptr;
   TCo_.denominator = nullptr;
+  ps_.numerator = nullptr;
+  ps_.denominator = nullptr;
 }
 
 BPHMonitor::~BPHMonitor()
 {
+  if ( hltpaths_den[0].find("Bs")!=std::string::npos )
+    {std::cout << "HLTR_count: " << HLTR_count << std::endl;}
+
   if (num_genTriggerEventFlag_) delete num_genTriggerEventFlag_;
   if (den_genTriggerEventFlag_) delete den_genTriggerEventFlag_;
   delete prescaleWeightProvider_;
@@ -365,6 +371,13 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
   bookME(ibooker,TCo_,histname,histtitle, TCo_binning_);
   setMETitle(TCo_,"run number","trigger coincidence");
 
+
+  histname = "prescales";histtitle="presscales";
+  MEbinning ps_binning_(100,0,100);
+  bookME(ibooker,ps_,histname,histtitle,ps_binning_);
+  setMETitle(ps_,"prescale","events");
+
+
   // Initialize the GenericTriggerEventFlag
   if ( num_genTriggerEventFlag_ && num_genTriggerEventFlag_->on() ) num_genTriggerEventFlag_->initRun( iRun, iSetup );
   if ( den_genTriggerEventFlag_ && den_genTriggerEventFlag_->on() ) den_genTriggerEventFlag_->initRun( iRun, iSetup );
@@ -374,6 +387,13 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
   //if the GenericTriggerEventFlag was successfully initialised, this should be too
   if ( !hltConfig_.init( iRun, iSetup, hltInputTag_.process(), hltChanged ) )
     {std::cout << "ERROR: hltConfig could not be initialised!" << std::endl;}
+
+  bool psChanged=false;
+  if ( !prescales_.init( iRun, iSetup, hltInputTag_.process(), psChanged ) )
+    {std::cout << "ERROR: pre-scale provider could not be initialised!" << std::endl;}
+
+  HLTR_count=0;
+
 }
 
 #include "FWCore/Framework/interface/ESHandle.h"
@@ -398,12 +418,24 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 
   edm::Handle<edm::TriggerResults> handleTriggerTrigRes; 
 
+  iEvent.getByToken(hltTrigResTag_, HLTR);
+
   // edm::Handle<trigger::TriggerEvent> handleTriggerEvent; 
   iEvent.getByToken( hltInputTagToken_, handleTriggerEvent_);
 
   edm::ESHandle<MagneticField> bFieldHandle;
   // Filter out events if Trigger Filtering is requested
+
+  // std::pair<int,int> ps(0,0);
+  // if ( hltpaths_den[0].find("HLT_DoubleMu4_JpsiTrk_Displaced_")!=std::string::npos )
+  //   {ps = prescales_.prescaleValues(iEvent,iSetup,"HLT_DoubleMu4_JpsiTrk_Displaced_v11");}
+  // if ( hltpaths_den[0].find("HLT_DoubleMu4_3_Bs_")!=std::string::npos )
+  //   {ps = prescales_.prescaleValues(iEvent,iSetup,"HLT_DoubleMu4_3_Bs_v11");}
+
   double PrescaleWeight = prescaleWeightProvider_->prescaleWeight( iEvent, iSetup );  
+
+  if ( hltpaths_den[0].find("HLT_DoubleMu4_JpsiTrk_Displaced_")!=std::string::npos || hltpaths_den[0].find("HLT_DoubleMu4_3_Bs_")!=std::string::npos || hltpaths_den[0].find("HLT_DoubleMu4_Jpsi_Displaced")!=std::string::npos )
+    {std::cout << "SWdebug: trigger: " << hltpaths_den[0].c_str() << " prescale: " << prescales_.prescaleValue(iEvent,iSetup,getTriggerName(hltpaths_den[0])) << std::endl;}
   
   if (tnp_>0) {//TnP method 
     if (den_genTriggerEventFlag_->on() && ! den_genTriggerEventFlag_->accept( iEvent, iSetup) ) return;
@@ -436,9 +468,19 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 
   }  
   else{//reference method
+    // if ( HLTR->accept(16) && ! den_genTriggerEventFlag_->accept( iEvent, iSetup) )
+    //   {std::cout << "SWdebug: accepted by HLTR but not genericTriggerEventFlag." << std::endl;}
+    if ( HLTR->accept(16) ){HLTR_count++;}
+
     if (den_genTriggerEventFlag_->on() && ! den_genTriggerEventFlag_->accept( iEvent, iSetup) ) return;
+    // if (! den_genTriggerEventFlag_->accept( iEvent, iSetup) ) return;
+
     // iEvent.getByToken( hltInputTag_, handleTriggerEvent);
     if (handleTriggerEvent_->sizeFilters()== 0)return;
+
+    PrescaleWeight = prescales_.prescaleValue( iEvent, iSetup, getTriggerName(hltpaths_den[0]) );  
+    ps_.denominator->Fill(PrescaleWeight);
+
     // if ( TCo_.denominator==0) 
     //   {
     // 	std::cout << "CAREFUL: object 0" << std::endl;
@@ -451,6 +493,8 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
     if ( hltpaths_den[0].find("HLT_DoubleMu4_3_Bs")!=std::string::npos )
       {std::cout << "SWdebug: filling tco_den (for Bs)" << std::endl;}
     const std::string & hltpath = hltpaths_den[0]; 
+
+    //find the two muons
     unsigned int muonCollectionSize = (*muoHandle).size();
     // for (auto const & m : *muoHandle ) {
     for ( unsigned int m1IT=0;m1IT<muonCollectionSize;m1IT++ ) {
@@ -471,6 +515,8 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           if (!DMSelection_ref(m1.p4() + m.p4())) {if ( verbosity_>10 ) {std::cout << "FAILED DiMu cuts" << std::endl;}continue;}
           if (m.charge()*m1.charge()>0 ) {if ( verbosity_>10 ) {std::cout << "FAILED charge requirement." << std::endl;}continue;}
         }
+
+	//calculate things
         iSetup.get<IdealMagneticFieldRecord>().get(bFieldHandle);
         const reco::BeamSpot& vertexBeamSpot = *beamSpot;
         std::vector<reco::TransientTrack> j_tks;
@@ -482,6 +528,10 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
         TransientVertex jtv = jkvf.vertex(j_tks);
         if (!jtv.isValid()) continue;
         reco::Vertex jpsivertex = jtv;
+	reco::Vertex::Error jpsivertexE = jpsivertex.error();
+	GlobalError verr(jpsivertexE.At(0,0), jpsivertexE.At(1,0), jpsivertexE.At(1,1), jpsivertexE.At(2,0), jpsivertexE.At(2,1), jpsivertexE.At(2,2) );
+	// const reco::Vertex::Point& vpoint = jpsivertex.position();
+	// GlobalPoint secVertex (vpoint.x(), vpoint.y(), vpoint.z());
         float dimuonCL = 0;
         if( (jpsivertex.chi2()>=0) && (jpsivertex.ndof()>0) )//I think these values are "unphysical"(no one will need to change them ever)so the can be fixed
 	  dimuonCL = TMath::Prob(jpsivertex.chi2(), jpsivertex.ndof() );
@@ -489,11 +539,13 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 			       m.py() + m1.py() ,
 			       0.);
         GlobalPoint jVertex = jtv.position();
-        GlobalError jerr    = jtv.positionError();
+        GlobalError jerr(jpsivertexE.At(0,0), jpsivertexE.At(1,0), jpsivertexE.At(1,1), jpsivertexE.At(2,0), jpsivertexE.At(2,1), jpsivertexE.At(2,2) );
         GlobalPoint displacementFromBeamspotJpsi( -1*((vertexBeamSpot.x0() - jVertex.x()) + (jVertex.z() - vertexBeamSpot.z0()) * vertexBeamSpot.dxdz()),
                                                   -1*((vertexBeamSpot.y0() - jVertex.y()) + (jVertex.z() - vertexBeamSpot.z0()) * vertexBeamSpot.dydz()),
 						  0);
         reco::Vertex::Point vperpj(displacementFromBeamspotJpsi.x(), displacementFromBeamspotJpsi.y(), 0.);
+	double lxyS = displacementFromBeamspotJpsi.perp()/sqrt(jerr.rerr(displacementFromBeamspotJpsi));
+	// double lxyErr = TMath::Sqrt(); //FIXME
         float jpsi_cos = vperpj.Dot(jpperp)/(vperpj.R()*jpperp.R());
         TrajectoryStateClosestToPoint mu1TS = mu1TT.impactPointTSCP();
         TrajectoryStateClosestToPoint mu2TS = mu2TT.impactPointTSCP();
@@ -558,6 +610,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           DiMuEta_.denominator ->Fill((m1.p4()+m.p4()).Eta() );
           DiMuPhi_.denominator ->Fill((m1.p4()+m.p4()).Phi());
           DiMudR_.denominator ->Fill(reco::deltaR(m,m1));
+	  DiMuDS_.denominator->Fill(lxyS);
           break;
         case 5:
           if (dimuonCL<minprob)continue;
@@ -831,6 +884,8 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
     if (num_genTriggerEventFlag_->on() && ! num_genTriggerEventFlag_->accept( iEvent, iSetup) ) return;
     // iEvent.getByToken( hltInputTag_, handleTriggerEvent);
     if (handleTriggerEvent_->sizeFilters()== 0)return;
+    PrescaleWeight = prescales_.prescaleValue( iEvent, iSetup, getTriggerName(hltpaths_num[0]) );  
+    ps_.numerator->Fill(PrescaleWeight);
     TCo_.numerator->Fill(iEvent.eventAuxiliary().run());
     if ( hltpaths_num[0].find("HLT_DoubleMu4_3_Bs")!=std::string::npos )
       {std::cout << "SWdebug: filling tco_num (for Bs)" << std::endl;}
@@ -879,6 +934,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 						  -1*((vertexBeamSpot.y0() - jVertex.y()) + (jVertex.z() - vertexBeamSpot.z0()) * vertexBeamSpot.dydz()),
 						  0);
 	reco::Vertex::Point vperpj(displacementFromBeamspotJpsi.x(), displacementFromBeamspotJpsi.y(), 0.);
+	double lxyS = displacementFromBeamspotJpsi.perp()/sqrt(jerr.rerr(displacementFromBeamspotJpsi));
 	float jpsi_cos = vperpj.Dot(jpperp)/(vperpj.R()*jpperp.R());
 	TrajectoryStateClosestToPoint mu1TS = mu1TT.impactPointTSCP();
 	TrajectoryStateClosestToPoint mu2TS = mu2TT.impactPointTSCP();
@@ -940,6 +996,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	  DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta() ,PrescaleWeight);
 	  DiMuPhi_.numerator ->Fill((m1.p4()+m.p4()).Phi(),PrescaleWeight);
 	  DiMudR_.numerator ->Fill(reco::deltaR(m,m1),PrescaleWeight);
+	  DiMuDS_.numerator->Fill(lxyS);
 	  break;
 	case 5:
 	  if (dimuonCL<minprob)continue;
@@ -1313,6 +1370,12 @@ void BPHMonitor::fillDescriptions(edm::ConfigurationDescriptions & descriptions)
   histoPSet.add<edm::ParameterSetDescription>("probPSet", probPSet);
   desc.add<edm::ParameterSetDescription>("histoPSet",histoPSet);
 
+  edm::ParameterSetDescription prescalePS;
+  prescalePS.add<edm::InputTag>("L1GTReadoutRecordLabel",edm::InputTag("gtDigis"));
+  prescalePS.add<edm::InputTag>("inputTag",edm::InputTag("hltTriggerSummaryAOD"));
+  prescalePS.add<edm::InputTag>("triggerResults",edm::InputTag( "TriggerResults::HLT" ));
+  desc.add<edm::ParameterSetDescription>("prescalePS",prescalePS);
+
   desc.add<unsigned int>("verbosityLevel",0);
   descriptions.add("bphMonitoring", desc);
 }
@@ -1362,21 +1425,10 @@ bool BPHMonitor::matchToTrigger(const std::string  &theTriggerName , T t, std::s
     }
 
   //Find the precise trigger name
-  const std::string trigger_name_tmp = theTriggerName.substr(0,theTriggerName.find("v*"));
-  const unsigned int Ntriggers(hltConfig_.size());
-  std::string trigger_name = "";
-  for (unsigned int i=0;i<Ntriggers;i++)
-    {
-      trigger_name = hltConfig_.triggerName(i);
-      if ( trigger_name.find(trigger_name_tmp) != std::string::npos ) 
-	{break;}
-    }
-  if ( trigger_name=="" ) 
-    {std::cout << "WARNING: Could not find the trigger name." << std::endl;}
-
+  std::string trigger_name = getTriggerName(theTriggerName);
   const unsigned int trigger_index = hltConfig_.triggerIndex(trigger_name);
   if (verbosity_>42 ) 
-    {std::cout << "trigger name: " << trigger_name << " index: " << trigger_index << std::endl;}
+    {std::cout << "trigger name: " << trigger_name << " index: " << trigger_index << " pre-scale: " << hltConfig_.prescaleValue(1,trigger_name) << std::endl;}
 
   //loop over all the modules for this trigger
   //by default use the last one
@@ -1452,6 +1504,24 @@ bool BPHMonitor::matchToTrigger(const std::string  &theTriggerName , T t, std::s
       
     }
   return matched;
+}
+
+
+std::string BPHMonitor::getTriggerName(std::string partialName) {
+
+  const std::string trigger_name_tmp = partialName.substr(0,partialName.find("v*"));
+  const unsigned int Ntriggers(hltConfig_.size());
+  std::string trigger_name = "";
+  for (unsigned int i=0;i<Ntriggers;i++)
+    {
+      trigger_name = hltConfig_.triggerName(i);
+      if ( trigger_name.find(trigger_name_tmp) != std::string::npos ) 
+	{break;}
+    }
+  if ( trigger_name=="" ) 
+    {std::cout << "WARNING: Could not find the trigger name." << std::endl;}
+
+  return trigger_name;
 }
 
 

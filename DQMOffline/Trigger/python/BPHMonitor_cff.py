@@ -638,12 +638,13 @@ Dimuon0_tightVtx_Jpsi.tnp = cms.bool(False)
 Dimuon0_tightVtx_Jpsi.Jpsi = cms.int32(1)
 Dimuon0_tightVtx_Jpsi.enum = cms.int32(8)
 Dimuon0_tightVtx_Jpsi.numGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_DoubleMu4_Jpsi_Displaced_v*")
-Dimuon0_tightVtx_Jpsi.PrescaleTriggerEventPSet.prescaleWeightHltPaths = cms.vstring("HLT_DoubleMu4_Jpsi_Displaced_v*")
+Dimuon0_tightVtx_Jpsi.PrescaleTriggerEventPSet.prescaleWeightHltPaths = cms.vstring("HLT_DoubleMu4_Jpsi_Displaced_v4")
 #Dimuon0_tightVtx_Jpsi.numGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu4_SQ_OS_dR_Max1p2 OR L1_DoubleMu0er1p5_SQ_OS_dR_Max1p4")
 Dimuon0_tightVtx_Jpsi.denGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_DoubleMu4_Jpsi_NoVertexing_v*")
 #Dimuon0_tightVtx_Jpsi.denGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu4_SQ_OS_dR_Max1p2 OR L1_DoubleMu0er1p5_SQ_OS_dR_Max1p4")
 Dimuon0_tightVtx_Jpsi.muoSelection_ref = cms.string("pt>5 && abs(eta)<2.4 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
 Dimuon0_tightVtx_Jpsi.DMSelection_ref = cms.string("abs(Eta)<2.4")
+
 
 
 ###additional track

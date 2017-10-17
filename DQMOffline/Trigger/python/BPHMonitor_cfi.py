@@ -117,3 +117,7 @@ hltBPHmonitoring.denGenericTriggerEventPSet.errorReplyDcs = cms.bool( True )
 hltBPHmonitoring.denGenericTriggerEventPSet.verbosityLevel = cms.uint32(0)
 hltBPHmonitoring.verbosityLevel = cms.uint32(1338)
 
+hltBPHmonitoring.prescalePS.L1GTReadoutRecordLabel = cms.InputTag("gtDigis");
+hltBPHmonitoring.prescalePS.inputTag = cms.InputTag("hltTriggerSummaryAOD");
+hltBPHmonitoring.prescalePS.triggerResults = cms.InputTag( "TriggerResults::HLT" );
+

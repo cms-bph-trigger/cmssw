@@ -156,6 +156,7 @@ private:
   METME  DiMudR_   ;
 
   METME TCo_;
+  METME ps_;
 
 
 //
@@ -163,6 +164,7 @@ private:
   GenericTriggerEventFlag* num_genTriggerEventFlag_;
   GenericTriggerEventFlag* den_genTriggerEventFlag_;
   PrescaleWeightProvider * prescaleWeightProvider_;
+  HLTPrescaleProvider prescales_;
   StringCutObjectSelector<reco::Muon,true>        muoSelection_;
   StringCutObjectSelector<reco::Muon,true>        muoSelection_ref;
   StringCutObjectSelector<reco::Muon,true>        muoSelection_tag;
@@ -202,7 +204,10 @@ private:
   edm::EDGetTokenT<trigger::TriggerEvent>  hltInputTagToken_;
   edm::Handle<trigger::TriggerEvent> handleTriggerEvent_;
   HLTConfigProvider hltConfig_;
+  edm::Handle<edm::TriggerResults> HLTR;
+  unsigned int HLTR_count;
 
+  std::string getTriggerName(std::string partialName);
 
 };
 
