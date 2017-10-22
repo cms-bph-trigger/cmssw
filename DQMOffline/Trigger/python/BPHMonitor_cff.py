@@ -788,8 +788,8 @@ bphHLTmonitoring = cms.Sequence(
     + Dimuon0_tripleMu1
     + Dimuon0_tripleMu2
     + Dimuon0_tripleMu3
-#    + Dimuon0_photon1
-#    + Dimuon0_photon2
+    #+ Dimuon0_photon1
+    #+ Dimuon0_photon2
     + Dimuon0_L3TnP_Jpsi
     + Dimuon0_L3TnP_Upsilon
     + Dimuon0_HLT_OS
