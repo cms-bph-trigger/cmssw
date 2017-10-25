@@ -75,7 +75,8 @@ public:
   static void fillHistoLSPSetDescription(edm::ParameterSetDescription & pset);
 
 protected:
-
+  void beginLuminosityBlock(const edm::LuminosityBlock& lumiBlock, const edm::EventSetup& iSetup);
+  void dqmBeginRun(edm::Run const &iRun, edm::EventSetup const &iSetup);
   void bookHistograms(DQMStore::IBooker &, edm::Run const &, edm::EventSetup const &) override;
   void bookME(DQMStore::IBooker &, METME& me, std::string& histname, std::string& histtitle, int& nbins, double& xmin, double& xmax);
   void bookME(DQMStore::IBooker &, METME& me, std::string& histname, std::string& histtitle, std::vector<double> binningX);
@@ -117,6 +118,7 @@ private:
   MEbinning           ds_binning_;
   MEbinning           cos_binning_;
   MEbinning           prob_binning_;
+  MEbinning           TCo_binning_;
 
   METME muPhi_;
   METME muEta_;
@@ -165,6 +167,8 @@ private:
   GenericTriggerEventFlag* den_genTriggerEventFlag_;
   PrescaleWeightProvider * prescaleWeightProvider_;
   HLTPrescaleProvider prescales_;
+  /* edm::InputTag algInputTag_; */
+  /* edm::InputTag extInputTag_; */
   StringCutObjectSelector<reco::Muon,true>        muoSelection_;
   StringCutObjectSelector<reco::Muon,true>        muoSelection_ref;
   StringCutObjectSelector<reco::Muon,true>        muoSelection_tag;
@@ -205,9 +209,15 @@ private:
   edm::Handle<trigger::TriggerEvent> handleTriggerEvent_;
   HLTConfigProvider hltConfig_;
   edm::Handle<edm::TriggerResults> HLTR;
-  unsigned int HLTR_count;
+  /* std::vector<std::pair<std::string,unsigned int> > HLTsummary_; */
+  /* edm::EDGetTokenT<BXVector<GlobalAlgBlk> > algToken_; */
+  /* edm::EDGetTokenT<BXVector<GlobalExtBlk> > extToken_; */
+  /* edm::Handle<BXVector<GlobalAlgBlk> > alg_; */
+  /* edm::Handle<BXVector<GlobalExtBlk> > ext_; */
+  /* l1t::L1TGlobalUtil *gtutil_; */
 
   std::string getTriggerName(std::string partialName);
+
 
 };
 

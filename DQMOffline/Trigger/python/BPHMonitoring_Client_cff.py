@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 from DQMServices.Core.DQMEDHarvester import DQMEDHarvester
 bphEfficiency = DQMEDHarvester("DQMGenericClient",
     subDirs        = cms.untracked.vstring("HLT/BPH/*"),
-    verbose        = cms.untracked.uint32(0), # Set to 2 for all messages
+    verbose        = cms.untracked.uint32(2), # Set to 2 for all messages
     resolution     = cms.vstring(),
     efficiency     = cms.vstring(
         "effic_muPhi       'mu efficiency vs phi; mu phi [rad]; efficiency' muPhi_numerator       muPhi_denominator",
@@ -34,6 +34,8 @@ bphEfficiency = DQMEDHarvester("DQMGenericClient",
         "effic_DiMudR       'DiMu efficiency vs dR; DiMu dR; efficiency' DiMudR_numerator       DiMudR_denominator",
         "effic_tr_d0       'tr efficiency vs d0; tr d0 [cm]; efficiency' tr_d0_numerator       tr_d0_denominator",
         "effic_tr_z0       'tr efficiency vs z0; tr z0 [cm]; efficiency' tr_z0_numerator       tr_z0_denominator",
+        "effic_TCo       'trigger counter; run number; ratio' TCo_numerator       TCo_denominator",
+        "effic_TCo       'trigger counter; run number; ratio' TCo_numerator       TCo_denominator",
 
 
     ),

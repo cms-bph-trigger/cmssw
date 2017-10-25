@@ -14,17 +14,24 @@ import FWCore.ParameterSet.Config as cms
 
 from Configuration.StandardSequences.Eras import eras
 
-process = cms.Process('DQM',eras.Run2_2017)
+# process = cms.Process('DQM',eras.Run2_2017)
+process = cms.Process('DQM')
+
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
+# process.load("Configuration.StandardSequences.Reconstruction_cff") #bmm
 process.load('SimGeneral.HepPDTESSource.pythiapdt_cfi')
 process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
+# process.load("Configuration.Geometry.GeometryDB_cff") #bmm
 process.load('Configuration.StandardSequences.MagneticField_AutoFromDBCurrent_cff')
+# process.load("Configuration.StandardSequences.MagneticField_38T_cff") #bmm
 process.load('DQMOffline.Configuration.DQMOffline_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
+
+# process.MessageLogger.categories.append('HLTrigReport')
 
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(-1)
@@ -65,7 +72,7 @@ process.DQMoutput = cms.OutputModule("DQMRootOutputModule",
 
 # Other statements
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '92X_dataRun2_Prompt_v8', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, '92X_dataRun2_Prompt_v9', '')
 
 # Path and EndPath definitions
 process.dqmoffline_step = cms.EndPath(process.bphMonitorHLT)

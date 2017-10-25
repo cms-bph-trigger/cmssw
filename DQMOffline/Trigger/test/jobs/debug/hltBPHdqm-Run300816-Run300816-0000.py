@@ -26,6 +26,8 @@ process.load('Configuration.StandardSequences.MagneticField_AutoFromDBCurrent_cf
 process.load('DQMOffline.Configuration.DQMOffline_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
+process.MessageLogger.categories.append('HLTrigReport')
+
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(-1)
 )
@@ -33,7 +35,8 @@ process.maxEvents = cms.untracked.PSet(
 process.source = cms.Source(
  "PoolSource",
   fileNames = cms.untracked.vstring(
-         "/store/user/swiederk/bmm4/HLT/007337FE-DB82-E711-B090-02163E011A05.root"
+         # "/store/user/swiederk/bmm4/HLT/007337FE-DB82-E711-B090-02163E011A05.root"
+        "/store/data/Run2017C/Charmonium/AOD/PromptReco-v3/000/300/816/00000/007337FE-DB82-E711-B090-02163E011A05.root"
   )
 )
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
@@ -65,7 +68,7 @@ process.DQMoutput = cms.OutputModule("DQMRootOutputModule",
 
 # Other statements
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '92X_dataRun2_Prompt_v8', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, '92X_dataRun2_Prompt_v9', '')
 
 # Path and EndPath definitions
 process.dqmoffline_step = cms.EndPath(process.bphMonitorHLT)

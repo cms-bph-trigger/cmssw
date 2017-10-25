@@ -70,11 +70,11 @@ hltBPHmonitoring.histoPSet.probPSet = cms.PSet(
   xmin  = cms.double(  0),
   xmax  = cms.double(1),
 )
-# hltBPHmonitoring.histoPSet.fls3dPSet = cms.PSet(
-#     nbins = cms.int32(56),
-#     xmin = cms.double(0),
-#     xmax = cms.double(15),
-# )
+hltBPHmonitoring.histoPSet.TCoPSet = cms.PSet(
+    nbins = cms.int32(20000),
+    xmin = cms.double(295000),
+    xmax = cms.double(315000),
+)
 
 hltBPHmonitoring.tracks       = cms.InputTag("generalTracks") # tracks??
 hltBPHmonitoring.offlinePVs      = cms.InputTag("offlinePrimaryVertices") # PVs
@@ -89,6 +89,7 @@ hltBPHmonitoring.hltTriggerSummaryAOD   = cms.InputTag("hltTriggerSummaryAOD",""
 hltBPHmonitoring.PrescaleTriggerEventPSet.prescaleWeightVerbosityLevel      = cms.uint32( 0 )
 hltBPHmonitoring.PrescaleTriggerEventPSet.prescaleWeightTriggerResults      = cms.InputTag( "TriggerResults::HLT" )
 hltBPHmonitoring.PrescaleTriggerEventPSet.prescaleWeightL1GtTriggerMenuLite = cms.InputTag( "l1GtTriggerMenuLite" )
+# hltBPHmonitoring.PrescaleTriggerEventPSet.prescaleWeightL1GtTriggerMenuLite = cms.InputTag( "gtDigis" )
 hltBPHmonitoring.PrescaleTriggerEventPSet.prescaleWeightHltPaths            = cms.vstring( "HLT_Dimuon0_Jpsi_L1_NoOS_v*" ) 
 
 
@@ -118,6 +119,7 @@ hltBPHmonitoring.denGenericTriggerEventPSet.verbosityLevel = cms.uint32(0)
 hltBPHmonitoring.verbosityLevel = cms.uint32(1338)
 
 hltBPHmonitoring.prescalePS.L1GTReadoutRecordLabel = cms.InputTag("gtDigis");
-hltBPHmonitoring.prescalePS.inputTag = cms.InputTag("hltTriggerSummaryAOD");
+hltBPHmonitoring.prescalePS.inputTag = cms.InputTag("hltTriggerSummaryAOD","","HLT");
 hltBPHmonitoring.prescalePS.triggerResults = cms.InputTag( "TriggerResults::HLT" );
+hltBPHmonitoring.prescalePS.AlgInputTag = cms.InputTag("gtStage2Digis");
 

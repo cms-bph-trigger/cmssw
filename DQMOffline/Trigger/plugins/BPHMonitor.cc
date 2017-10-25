@@ -26,11 +26,14 @@ BPHMonitor::BPHMonitor( const edm::ParameterSet& iConfig ) :
   , ds_binning_           ( getHistoPSet (iConfig.getParameter<edm::ParameterSet>("histoPSet").getParameter<edm::ParameterSet>   ("dsPSet")     ) )
   , cos_binning_           ( getHistoPSet (iConfig.getParameter<edm::ParameterSet>("histoPSet").getParameter<edm::ParameterSet>   ("cosPSet")     ) )
   , prob_binning_           ( getHistoPSet (iConfig.getParameter<edm::ParameterSet>("histoPSet").getParameter<edm::ParameterSet>   ("probPSet")     ) )
+  , TCo_binning_           ( getHistoPSet (iConfig.getParameter<edm::ParameterSet>("histoPSet").getParameter<edm::ParameterSet>   ("probPSet")     ) )
   , verbosity_( iConfig.getParameter<unsigned int>("verbosityLevel") )
   , num_genTriggerEventFlag_(new GenericTriggerEventFlag(iConfig.getParameter<edm::ParameterSet>("numGenericTriggerEventPSet"),consumesCollector(), *this))
   , den_genTriggerEventFlag_(new GenericTriggerEventFlag(iConfig.getParameter<edm::ParameterSet>("denGenericTriggerEventPSet"),consumesCollector(), *this))
   , prescaleWeightProvider_( new PrescaleWeightProvider( iConfig.getParameter<edm::ParameterSet>("PrescaleTriggerEventPSet"),consumesCollector(), *this))
   , prescales_( iConfig.getParameter<edm::ParameterSet>("prescalePS"), consumesCollector(), *this)
+  // , algInputTag_( iConfig.getParameter<edm::ParameterSet>("prescalePS").getParameter<edm::InputTag>("AlgInputTag") )
+  // , extInputTag_( iConfig.getParameter<edm::ParameterSet>("prescalePS").getParameter<edm::InputTag>("ExtInputTag") )
   , muoSelection_ ( iConfig.getParameter<std::string>("muoSelection") )
   , muoSelection_ref ( iConfig.getParameter<std::string>("muoSelection_ref") )
   , muoSelection_tag ( iConfig.getParameter<std::string>("muoSelection_tag") )
@@ -127,6 +130,10 @@ BPHMonitor::BPHMonitor( const edm::ParameterSet& iConfig ) :
   DiMudR_.denominator = nullptr;
 
   hltInputTagToken_  = mayConsume<trigger::TriggerEvent>(hltInputTag_);
+  // algToken_ = (mayConsume<BXVector<GlobalAlgBlk> >(algInputTag_));
+  // extToken_ = (mayConsume<BXVector<GlobalExtBlk> >(extInputTag_));
+
+  // gtutil_ = new l1t::L1TGlobalUtil(iConfig, consumesCollector(), *this, algInputTag_, extInputTag_);
 
   //SW
   TCo_.numerator = nullptr;
@@ -137,8 +144,13 @@ BPHMonitor::BPHMonitor( const edm::ParameterSet& iConfig ) :
 
 BPHMonitor::~BPHMonitor()
 {
-  if ( hltpaths_den[0].find("Bs")!=std::string::npos )
-    {std::cout << "HLTR_count: " << HLTR_count << std::endl;}
+  // if ( hltpaths_den[0].find("Bs")!=std::string::npos )
+  //   {std::cout << "HLTR_count: " << HLTR_count << std::endl;}
+
+  // std::cout << "HLT summary:" << std::endl
+  // 	    << "index" << std::setw(85) << "trigger name" << std::setw(20) << "count" << std::endl;
+  // for (unsigned int i=0;i<HLTsummary_.size();i++)
+  //   {std::cout << std::setw(5) << i << std::setw(85) << HLTsummary_[i].first << std::setw(20) << HLTsummary_[i].second << std::endl;}
 
   if (num_genTriggerEventFlag_) delete num_genTriggerEventFlag_;
   if (den_genTriggerEventFlag_) delete den_genTriggerEventFlag_;
@@ -223,6 +235,37 @@ void BPHMonitor::bookME(DQMStore::IBooker &ibooker, METME &me, std::string &hist
   } else {
     this->bookME(ibooker, me, histname, histtitle, binning.edges);
   }
+}
+
+void BPHMonitor::beginLuminosityBlock(const edm::LuminosityBlock& lumiBlock, const edm::EventSetup& iSetup) {
+  // std::cout << "BEGIN LUMI BLOCK" << std::endl;
+}
+
+void BPHMonitor::dqmBeginRun(edm::Run const &iRun, edm::EventSetup const &iSetup) {
+  //executed before bookHistograms
+
+  // Initialize the GenericTriggerEventFlag
+  if ( num_genTriggerEventFlag_ && num_genTriggerEventFlag_->on() ) num_genTriggerEventFlag_->initRun( iRun, iSetup );
+  if ( den_genTriggerEventFlag_ && den_genTriggerEventFlag_->on() ) den_genTriggerEventFlag_->initRun( iRun, iSetup );
+  prescaleWeightProvider_->initRun( iRun, iSetup );
+
+  //initialise the HLTPrescaleProvider which also initialises the HLTConfigProvider
+  bool psChanged=false;
+  if ( !prescales_.init( iRun, iSetup, hltInputTag_.process(), psChanged ) )
+    {std::cout << "ERROR: pre-scale provider could not be initialised!" << std::endl;return;}
+
+  hltConfig_ = prescales_.hltConfigProvider();
+
+  // HLTsummary_.clear();
+  // {const unsigned int Ntriggers(hltConfig_.size());
+  //   for (unsigned int i=0;i<Ntriggers;i++)
+  //     {
+  // 	std::pair<std::string,unsigned int> p("",0);
+  // 	p.first = hltConfig_.triggerName(i);
+  // 	HLTsummary_.push_back(p);
+  //     }
+  // }
+
 }
 
 
@@ -364,36 +407,18 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
   }
 
   //SW
-  // std::cout << "SWdebug: " << iRun.runAuxiliary().run() << std::endl;
   histname = "TCo"; histtitle="TCo";
-  unsigned int currentRun = iRun.runAuxiliary().run();
-  MEbinning TCo_binning_(1,currentRun,currentRun+1);
+  // unsigned int currentRun = iRun.runAuxiliary().run();
+  // MEbinning TCo_binning_(1,currentRun,currentRun+1);
   bookME(ibooker,TCo_,histname,histtitle, TCo_binning_);
+  // TCo_.numerator->getTH1()->SetCanExtend(true);
+  // TCo_.denominator->getTH1()->SetCanExtend(true);
   setMETitle(TCo_,"run number","trigger coincidence");
 
-
-  histname = "prescales";histtitle="presscales";
+  histname = "prescales";histtitle="prescales";
   MEbinning ps_binning_(100,0,100);
   bookME(ibooker,ps_,histname,histtitle,ps_binning_);
   setMETitle(ps_,"prescale","events");
-
-
-  // Initialize the GenericTriggerEventFlag
-  if ( num_genTriggerEventFlag_ && num_genTriggerEventFlag_->on() ) num_genTriggerEventFlag_->initRun( iRun, iSetup );
-  if ( den_genTriggerEventFlag_ && den_genTriggerEventFlag_->on() ) den_genTriggerEventFlag_->initRun( iRun, iSetup );
-  prescaleWeightProvider_->initRun( iRun, iSetup );
-
-  bool hltChanged=false;
-  //if the GenericTriggerEventFlag was successfully initialised, this should be too
-  if ( !hltConfig_.init( iRun, iSetup, hltInputTag_.process(), hltChanged ) )
-    {std::cout << "ERROR: hltConfig could not be initialised!" << std::endl;}
-
-  bool psChanged=false;
-  if ( !prescales_.init( iRun, iSetup, hltInputTag_.process(), psChanged ) )
-    {std::cout << "ERROR: pre-scale provider could not be initialised!" << std::endl;}
-
-  HLTR_count=0;
-
 }
 
 #include "FWCore/Framework/interface/ESHandle.h"
@@ -418,25 +443,43 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 
   edm::Handle<edm::TriggerResults> handleTriggerTrigRes; 
 
-  iEvent.getByToken(hltTrigResTag_, HLTR);
+  // iEvent.getByToken(algToken_,alg_);
+  // if ( !alg_.isValid() ) {std::cout << "ERROR: Invalid algorithm block" << std::endl;return;}
+  
+  bool HLTF=true;
+  try{iEvent.getByToken(hltTrigResTag_, HLTR);}
+  catch(...) {HLTF=false;}
 
   // edm::Handle<trigger::TriggerEvent> handleTriggerEvent; 
-  iEvent.getByToken( hltInputTagToken_, handleTriggerEvent_);
+  try{iEvent.getByToken( hltInputTagToken_, handleTriggerEvent_);}
+  catch(...) {HLTF=false;}
+  if (!HLTF) {std::cout << "No valid trigger information." << std::endl;}
+
+  //take these as checks?
+  // std::cout << "sizeFilters: "  << handleTriggerEvent_->sizeFilters() << std::endl;
+  // std::cout << "triggerNames.size(): " << hltConfig_.triggerNames().size() << std::endl;
+
+  //loop over trigger index and fill names and results
+  // {const unsigned int Ntriggers(hltConfig_.size());
+  //   for (unsigned int i=0;i<Ntriggers;i++)
+  //     {if ( HLTR->accept(i) ) {HLTsummary_[i].second++;}}
+  // }
 
   edm::ESHandle<MagneticField> bFieldHandle;
   // Filter out events if Trigger Filtering is requested
 
-  // std::pair<int,int> ps(0,0);
-  // if ( hltpaths_den[0].find("HLT_DoubleMu4_JpsiTrk_Displaced_")!=std::string::npos )
-  //   {ps = prescales_.prescaleValues(iEvent,iSetup,"HLT_DoubleMu4_JpsiTrk_Displaced_v11");}
-  // if ( hltpaths_den[0].find("HLT_DoubleMu4_3_Bs_")!=std::string::npos )
-  //   {ps = prescales_.prescaleValues(iEvent,iSetup,"HLT_DoubleMu4_3_Bs_v11");}
-
   double PrescaleWeight = prescaleWeightProvider_->prescaleWeight( iEvent, iSetup );  
 
-  if ( hltpaths_den[0].find("HLT_DoubleMu4_JpsiTrk_Displaced_")!=std::string::npos || hltpaths_den[0].find("HLT_DoubleMu4_3_Bs_")!=std::string::npos || hltpaths_den[0].find("HLT_DoubleMu4_Jpsi_Displaced")!=std::string::npos )
-    {std::cout << "SWdebug: trigger: " << hltpaths_den[0].c_str() << " prescale: " << prescales_.prescaleValue(iEvent,iSetup,getTriggerName(hltpaths_den[0])) << std::endl;}
-  
+  std::string translatedName = getTriggerName(hltpaths_den[0]);
+  if ( verbosity_>0 ) {std::cout << "checking trigger: trigger name: " << getTriggerName(hltpaths_den[0]) << std::endl;}
+
+  // std::cout << "retrieveL1" << std::endl;
+  // gtutil_->retrieveL1(iEvent,iSetup,algToken_);
+  // std::cout << "done" << std::endl;
+
+  // std::cout << "SWdebug: prescaleSet: " << prescales_.prescaleSet(iEvent,iSetup) << std::endl;
+  // std::cout << "SWdebug: prescale: " << prescales_.prescaleValues(iEvent,iSetup,translatedName).first << " " << prescales_.prescaleValues(iEvent,iSetup,translatedName).second  << std::endl;
+
   if (tnp_>0) {//TnP method 
     if (den_genTriggerEventFlag_->on() && ! den_genTriggerEventFlag_->accept( iEvent, iSetup) ) return;
     // iEvent.getByToken( hltInputTag_, handleTriggerEvent_);
@@ -468,30 +511,18 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 
   }  
   else{//reference method
-    // if ( HLTR->accept(16) && ! den_genTriggerEventFlag_->accept( iEvent, iSetup) )
-    //   {std::cout << "SWdebug: accepted by HLTR but not genericTriggerEventFlag." << std::endl;}
-    if ( HLTR->accept(16) ){HLTR_count++;}
+    // if ( HLTR->accept(16) ){HLTR_count++;}
 
     if (den_genTriggerEventFlag_->on() && ! den_genTriggerEventFlag_->accept( iEvent, iSetup) ) return;
-    // if (! den_genTriggerEventFlag_->accept( iEvent, iSetup) ) return;
 
     // iEvent.getByToken( hltInputTag_, handleTriggerEvent);
     if (handleTriggerEvent_->sizeFilters()== 0)return;
 
     PrescaleWeight = prescales_.prescaleValue( iEvent, iSetup, getTriggerName(hltpaths_den[0]) );  
-    ps_.denominator->Fill(PrescaleWeight);
 
-    // if ( TCo_.denominator==0) 
-    //   {
-    // 	std::cout << "CAREFUL: object 0" << std::endl;
-    // 	std::cout << "DiMuMass_: " << DiMuMass_.denominator << std::endl;
-    // 	std::cout << "enum: " << enum_ << std::endl;
-    // 	std::cout << "tnp: " << tnp_ << std::endl;
-    //   }
-    // else {TCo_.denominator->Fill(iEvent.eventAuxiliary().run());}
+    ps_.denominator->Fill(PrescaleWeight);
     TCo_.denominator->Fill(iEvent.eventAuxiliary().run());
-    if ( hltpaths_den[0].find("HLT_DoubleMu4_3_Bs")!=std::string::npos )
-      {std::cout << "SWdebug: filling tco_den (for Bs)" << std::endl;}
+
     const std::string & hltpath = hltpaths_den[0]; 
 
     //find the two muons
@@ -887,8 +918,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
     PrescaleWeight = prescales_.prescaleValue( iEvent, iSetup, getTriggerName(hltpaths_num[0]) );  
     ps_.numerator->Fill(PrescaleWeight);
     TCo_.numerator->Fill(iEvent.eventAuxiliary().run());
-    if ( hltpaths_num[0].find("HLT_DoubleMu4_3_Bs")!=std::string::npos )
-      {std::cout << "SWdebug: filling tco_num (for Bs)" << std::endl;}
+
     const std::string & hltpath1 = hltpaths_num[0]; 
     // for (auto const & m : *muoHandle ) {
     //   // if(false && !matchToTrigger(hltpath1,m, handleTriggerEvent_)) continue;
@@ -1064,7 +1094,6 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	  if (trHandle.isValid()){
 	    for (auto const & t : *trHandle) {
 	      if(!trSelection_ref(t))continue;
-	      // std::cout << "SWdebug" << std::endl;
 	      // if(false && !matchToTrigger(hltpath1,t, handleTriggerEvent_)) continue;
 	      if(!matchToTrigger(hltpath1,t,"",{321})) continue;
 	      const reco::Track& itrk1       = t ;                                                
@@ -1346,6 +1375,7 @@ void BPHMonitor::fillDescriptions(edm::ConfigurationDescriptions & descriptions)
   edm::ParameterSetDescription dsPSet;
   edm::ParameterSetDescription cosPSet;
   edm::ParameterSetDescription probPSet;
+  edm::ParameterSetDescription TCoPSet;
   fillHistoPSetDescription(phiPSet);
   fillHistoPSetDescription(ptPSet);
   fillHistoPSetDescription(etaPSet);
@@ -1357,6 +1387,7 @@ void BPHMonitor::fillDescriptions(edm::ConfigurationDescriptions & descriptions)
   fillHistoPSetDescription(dsPSet);
   fillHistoPSetDescription(cosPSet);
   fillHistoPSetDescription(probPSet);
+  fillHistoPSetDescription(TCoPSet);
   histoPSet.add<edm::ParameterSetDescription>("d0PSet", d0PSet);
   histoPSet.add<edm::ParameterSetDescription>("etaPSet", etaPSet);
   histoPSet.add<edm::ParameterSetDescription>("phiPSet", phiPSet);
@@ -1368,12 +1399,17 @@ void BPHMonitor::fillDescriptions(edm::ConfigurationDescriptions & descriptions)
   histoPSet.add<edm::ParameterSetDescription>("dsPSet", dsPSet);
   histoPSet.add<edm::ParameterSetDescription>("cosPSet", cosPSet);
   histoPSet.add<edm::ParameterSetDescription>("probPSet", probPSet);
+  histoPSet.add<edm::ParameterSetDescription>("TCoPSet", TCoPSet);
   desc.add<edm::ParameterSetDescription>("histoPSet",histoPSet);
 
   edm::ParameterSetDescription prescalePS;
-  prescalePS.add<edm::InputTag>("L1GTReadoutRecordLabel",edm::InputTag("gtDigis"));
-  prescalePS.add<edm::InputTag>("inputTag",edm::InputTag("hltTriggerSummaryAOD"));
+  prescalePS.add<std::string>("processName","HLT");
+  prescalePS.add<std::string>("triggerName","@");
   prescalePS.add<edm::InputTag>("triggerResults",edm::InputTag( "TriggerResults::HLT" ));
+  prescalePS.add<edm::InputTag>("inputTag",edm::InputTag("hltTriggerSummaryAOD"));
+  prescalePS.add<edm::InputTag>("L1GTReadoutRecordLabel",edm::InputTag("gtDigis"));
+  prescalePS.add<edm::InputTag>("AlgInputTag",edm::InputTag("gtStage2Digis"));
+  prescalePS.add<edm::InputTag>("ExtInputTag",edm::InputTag("gtStage2Digis"));
   desc.add<edm::ParameterSetDescription>("prescalePS",prescalePS);
 
   desc.add<unsigned int>("verbosityLevel",0);
