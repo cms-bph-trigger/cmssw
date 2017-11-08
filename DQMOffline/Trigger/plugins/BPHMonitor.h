@@ -160,7 +160,7 @@ private:
 
   GenericTriggerEventFlag* num_genTriggerEventFlag_;
   GenericTriggerEventFlag* den_genTriggerEventFlag_;
-  PrescaleWeightProvider * prescaleWeightProvider_;
+//  PrescaleWeightProvider * prescaleWeightProvider_;
   HLTPrescaleProvider* hltPrescale_;
   StringCutObjectSelector<reco::Muon,true>        muoSelection_;
   StringCutObjectSelector<reco::Muon,true>        muoSelection_ref;
