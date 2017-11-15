@@ -179,7 +179,7 @@ DMu4_3_Jpsi_dRcut.tnp = cms.bool(False)
 DMu4_3_Jpsi_dRcut.enum = cms.int32(4)
 DMu4_3_Jpsi_dRcut.Jpsi = cms.int32(1)
 DMu4_3_Jpsi_dRcut.numGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_DoubleMu4_3_Jpsi_Displaced_v*")
-DMu4_3_Jpsi_dRcut.denGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_DoubleMu0_Jpsi_NoVertexing_v*")
+DMu4_3_Jpsi_dRcut.denGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_Dimuon0_Jpsi_NoVertexing_v*")
 DMu4_3_Jpsi_dRcut.PrescaleTriggerEventPSet.prescaleWeightHltPaths = cms.vstring("HLT_DoubleMu4_3_Jpsi_Displaced_v*")
 #DMu4_3_Jpsi_dRcut.numGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu0er1p5_SQ_OS_dR_1p4")
 # DMu4_3_Jpsi_dRcut.denGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_Dimuon0_LowMass_L1_0er1p5_v*")
@@ -756,60 +756,60 @@ DimuonX_HLT_OS_Vtx.muoSelection_ref = cms.string('abs(eta)<2.4 & isPFMuon & isGl
 
 bphHLTmonitoring = cms.Sequence(
     Dimuon0_Upsilon_tnp 
-    + Dimuon0_Upsilon_tnp1 
-    + Dimuon0_Upsilon_tnp1
-    + Dimuon0_Upsilon_tnp2
-    + Dimuon0_Upsilon_tnp2
-    + Dimuon25_Jpsi_tnp
-    + Dimuon0_Jpsi_tnp
-    + Dimuon0_Jpsi_tnp1
-    + Dimuon0_Jpsi_tnp2
-    + Dimuon0_Jpsi_OS
-    + Dimuon0_er
-    + Dimuon0_Upsilon_er
-    + Dimuon0_dRcut
+    # + Dimuon0_Upsilon_tnp1 
+    # + Dimuon0_Upsilon_tnp1
+    # + Dimuon0_Upsilon_tnp2
+    # + Dimuon0_Upsilon_tnp2
+    # + Dimuon25_Jpsi_tnp
+    # + Dimuon0_Jpsi_tnp
+    # + Dimuon0_Jpsi_tnp1
+    # + Dimuon0_Jpsi_tnp2
+    # + Dimuon0_Jpsi_OS
+    # + Dimuon0_er
+    # + Dimuon0_Upsilon_er
+    # + Dimuon0_dRcut
     + DMu4_3_Bs_dRcut
     + DMu4_3_Jpsi_dRcut
-    + Dimuon14_Phi_dRcut
-    + Dimuon20_Jpsi_dRcut
-    + Dimuon10_PsiPrime_dRcut
-    + DMu4_LowMassNonResonantTrk_Displaced_dRcut
-    + DMu4_JpsiTrk_Displaced_dRcut
-    + DMu4_PsiPrimeTrk_Displaced_dRcut
-    + Dimuon25_Jpsi_dRcut
-    + Dimuon18_PsiPrime_dRcut
-    + Dimuon12_Upsilon_dRcut
-    + Dimuon25_Jpsi_dRcut_low
-    + Dimuon18_Jpsi_dRcut_low
-    + DMu4_PsiPrimeTrk_Displaced_dRcut_low
-    + DMu4_JpsiTrk_Displaced_dRcut_low
-    + DMu4_LowMassNonResonantTrk_Displaced_dRcut_low
-    + Dimuon20_masscut1
-    + Dimuon12_masscut2
-    + Dimuon0_Upsilon_masscut
-    + Trimuon2_masscut4
-    + Trimuon2_masscut5
-    + Trimuon2_masscut6
-    + Dimuon0_masscut3
-    + Dimuon0_tripleMu1
-    + Dimuon0_tripleMu2
-    + Dimuon0_tripleMu3
-#    + Dimuon0_photon1
-#    + Dimuon0_photon2
-    + Dimuon0_L3TnP_Jpsi
-    + Dimuon0_L3TnP_Upsilon
-    + Dimuon0_HLT_OS
-    + Dimuon0_HLT_OS1
-    + Dimuon0_looseVtx_Jpsi
-    + Dimuon0_looseVtx_Upsilon
-    + Dimuon0_tightVtx_Jpsi
-    + Dimuon0_addTrack_Jpsi
-    + Dimuon0_addTrackTrack_Jpsi
-    + Dimuon0_addTrackMu_Onia
-    + Dimuon0_addTrackMu_Phi
-    + Dimuon0_addTrackMu_Onia1
-    + Dimuon0_addTrackMu_Phi1
-   # + DimuonX_HLT_OS_Vtx
+    # + Dimuon14_Phi_dRcut
+    # + Dimuon20_Jpsi_dRcut
+    # + Dimuon10_PsiPrime_dRcut
+    # + DMu4_LowMassNonResonantTrk_Displaced_dRcut
+    # + DMu4_JpsiTrk_Displaced_dRcut
+    # + DMu4_PsiPrimeTrk_Displaced_dRcut
+    # + Dimuon25_Jpsi_dRcut
+    # + Dimuon18_PsiPrime_dRcut
+    # + Dimuon12_Upsilon_dRcut
+    # + Dimuon25_Jpsi_dRcut_low
+    # + Dimuon18_Jpsi_dRcut_low
+    # + DMu4_PsiPrimeTrk_Displaced_dRcut_low
+    # + DMu4_JpsiTrk_Displaced_dRcut_low
+    # + DMu4_LowMassNonResonantTrk_Displaced_dRcut_low
+    # + Dimuon20_masscut1
+    # + Dimuon12_masscut2
+    # + Dimuon0_Upsilon_masscut
+    # + Trimuon2_masscut4
+    # + Trimuon2_masscut5
+    # + Trimuon2_masscut6
+    # + Dimuon0_masscut3
+    # + Dimuon0_tripleMu1
+    # + Dimuon0_tripleMu2
+    # + Dimuon0_tripleMu3
+#    + Dimuon0_photon1 # by Alessio
+#    + Dimuon0_photon2 # by Alessio
+    # + Dimuon0_L3TnP_Jpsi
+    # + Dimuon0_L3TnP_Upsilon
+    # + Dimuon0_HLT_OS
+    # + Dimuon0_HLT_OS1
+    # + Dimuon0_looseVtx_Jpsi
+    # + Dimuon0_looseVtx_Upsilon
+    # + Dimuon0_tightVtx_Jpsi
+    # + Dimuon0_addTrack_Jpsi
+    # + Dimuon0_addTrackTrack_Jpsi
+    # + Dimuon0_addTrackMu_Onia
+    # + Dimuon0_addTrackMu_Phi
+    # + Dimuon0_addTrackMu_Onia1
+    # + Dimuon0_addTrackMu_Phi1
+   # + DimuonX_HLT_OS_Vtx # by Alessio
 )
 
 

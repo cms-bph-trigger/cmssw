@@ -35,11 +35,11 @@ bphEfficiency = DQMEDHarvester("DQMGenericClient",
         "effic_tr_d0       'tr efficiency vs d0; tr d0 [cm]; efficiency' tr_d0_numerator       tr_d0_denominator",
         "effic_tr_z0       'tr efficiency vs z0; tr z0 [cm]; efficiency' tr_z0_numerator       tr_z0_denominator",
         "effic_TCo       'trigger counter; run number; ratio' TCo_numerator       TCo_denominator",
-        "effic_TCo       'trigger counter; run number; ratio' TCo_numerator       TCo_denominator",
+        "effic_PU       'DiMu efficiency vs pile-up; pile-up; ratio' pile-up_numerator       pile-up_denominator",
 
 
     ),
-#    efficiencyProfile = cms.untracked.vstring(
+#    efficiencyProfile = cms.untracked.vstring(sT
 #        "effic_met_vs_LS 'MET efficiency vs LS; LS; PF MET efficiency' metVsLS_numerator metVsLS_denominator"
 #    ),
   

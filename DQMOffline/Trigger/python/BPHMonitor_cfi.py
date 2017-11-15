@@ -14,7 +14,7 @@ hltBPHmonitoring.Upsilon = cms.int32(0)
 hltBPHmonitoring.Jpsi = cms.int32(0)
 hltBPHmonitoring.seagull = cms.int32(0)
 hltBPHmonitoring.histoPSet.ptPSet = cms.PSet(
-    edges = cms.vdouble(-0.5, 0, 2, 4, 8, 10, 12, 14, 16, 18, 20, 22, 25, 30, 35, 40, 50, 70),
+    edges = cms.vdouble(-0.5, 0, 2, 4, 5, 6, 7, 8, 10, 12, 14, 16, 18, 20, 22, 25, 30, 35, 40, 50, 70),
 )
 hltBPHmonitoring.histoPSet.phiPSet = cms.PSet(
   nbins = cms.int32 (  64  ),
@@ -74,6 +74,11 @@ hltBPHmonitoring.histoPSet.TCoPSet = cms.PSet(
     nbins = cms.int32(20000),
     xmin = cms.double(295000),
     xmax = cms.double(315000),
+)
+hltBPHmonitoring.histoPSet.PUPSet = cms.PSet(
+    nbins = cms.int32(70),
+    xmin = cms.double(0),
+    xmax = cms.double(70),
 )
 
 hltBPHmonitoring.tracks       = cms.InputTag("generalTracks") # tracks??

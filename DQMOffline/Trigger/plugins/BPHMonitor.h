@@ -106,6 +106,7 @@ private:
   edm::EDGetTokenT<reco::BeamSpot>        bsToken_;
   edm::EDGetTokenT<reco::TrackCollection>       trToken_;
   edm::EDGetTokenT<reco::PhotonCollection>       phToken_;
+  edm::EDGetTokenT<reco::VertexCollection> vtxToken_;
 
   MEbinning           phi_binning_;
   MEbinning           pt_binning_;
@@ -119,6 +120,7 @@ private:
   MEbinning           cos_binning_;
   MEbinning           prob_binning_;
   MEbinning           TCo_binning_;
+  MEbinning           PU_binning_;
 
   METME muPhi_;
   METME muEta_;
@@ -159,6 +161,7 @@ private:
 
   METME TCo_;
   METME ps_;
+  METME PU_;
 
 
 //

@@ -15,6 +15,7 @@ BPHMonitor::BPHMonitor( const edm::ParameterSet& iConfig ) :
   , bsToken_              ( mayConsume<reco::BeamSpot>             (iConfig.getParameter<edm::InputTag>("beamSpot")))
   , trToken_              ( mayConsume<reco::TrackCollection>             (iConfig.getParameter<edm::InputTag>("tracks")))
   , phToken_              ( mayConsume<reco::PhotonCollection>             (iConfig.getParameter<edm::InputTag>("photons")))
+  , vtxToken_( mayConsume<reco::VertexCollection>( iConfig.getParameter<edm::InputTag>("offlinePVs") ) )
   , phi_binning_          ( getHistoPSet   (iConfig.getParameter<edm::ParameterSet>("histoPSet").getParameter<edm::ParameterSet>   ("phiPSet")    ) )
   , pt_binning_          ( getHistoPSet   (iConfig.getParameter<edm::ParameterSet>("histoPSet").getParameter<edm::ParameterSet>   ("ptPSet")    ) )
   , eta_binning_          ( getHistoPSet   (iConfig.getParameter<edm::ParameterSet>("histoPSet").getParameter<edm::ParameterSet>   ("etaPSet")    ) )
@@ -26,7 +27,8 @@ BPHMonitor::BPHMonitor( const edm::ParameterSet& iConfig ) :
   , ds_binning_           ( getHistoPSet (iConfig.getParameter<edm::ParameterSet>("histoPSet").getParameter<edm::ParameterSet>   ("dsPSet")     ) )
   , cos_binning_           ( getHistoPSet (iConfig.getParameter<edm::ParameterSet>("histoPSet").getParameter<edm::ParameterSet>   ("cosPSet")     ) )
   , prob_binning_           ( getHistoPSet (iConfig.getParameter<edm::ParameterSet>("histoPSet").getParameter<edm::ParameterSet>   ("probPSet")     ) )
-  , TCo_binning_           ( getHistoPSet (iConfig.getParameter<edm::ParameterSet>("histoPSet").getParameter<edm::ParameterSet>   ("probPSet")     ) )
+  , TCo_binning_           ( getHistoPSet (iConfig.getParameter<edm::ParameterSet>("histoPSet").getParameter<edm::ParameterSet>   ("TCoPSet")     ) )
+  , PU_binning_           ( getHistoPSet (iConfig.getParameter<edm::ParameterSet>("histoPSet").getParameter<edm::ParameterSet>   ("PUPSet")     ) )
   , verbosity_( iConfig.getParameter<unsigned int>("verbosityLevel") )
   , num_genTriggerEventFlag_(new GenericTriggerEventFlag(iConfig.getParameter<edm::ParameterSet>("numGenericTriggerEventPSet"),consumesCollector(), *this))
   , den_genTriggerEventFlag_(new GenericTriggerEventFlag(iConfig.getParameter<edm::ParameterSet>("denGenericTriggerEventPSet"),consumesCollector(), *this))
@@ -140,6 +142,8 @@ BPHMonitor::BPHMonitor( const edm::ParameterSet& iConfig ) :
   TCo_.denominator = nullptr;
   ps_.numerator = nullptr;
   ps_.denominator = nullptr;
+  PU_.numerator = nullptr;
+  PU_.denominator = nullptr;
 }
 
 BPHMonitor::~BPHMonitor()
@@ -419,6 +423,10 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
   MEbinning ps_binning_(100,0,100);
   bookME(ibooker,ps_,histname,histtitle,ps_binning_);
   setMETitle(ps_,"prescale","events");
+
+  histname = "pile-up";histtitle="pile-up";
+  bookME(ibooker,PU_,histname,histtitle,PU_binning_);
+  setMETitle(PU_,"pile-up","events/");
 }
 
 #include "FWCore/Framework/interface/ESHandle.h"
@@ -439,6 +447,9 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 
   edm::Handle<reco::PhotonCollection> phHandle;
   iEvent.getByToken( phToken_, phHandle );
+
+  edm::Handle<reco::VertexCollection> vtxHandle;
+  iEvent.getByToken( vtxToken_, vtxHandle );
 
 
   edm::Handle<edm::TriggerResults> handleTriggerTrigRes; 
@@ -519,13 +530,22 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
     if (handleTriggerEvent_->sizeFilters()== 0)return;
 
     PrescaleWeight = prescales_.prescaleValue( iEvent, iSetup, getTriggerName(hltpaths_den[0]) );  
+    if ( verbosity_>10 ) {std::cout << "event: " << iEvent.eventAuxiliary().event() << " accepted trigger: " << hltpaths_den[0] << " with prescale: " << PrescaleWeight << std::endl;}
 
     ps_.denominator->Fill(PrescaleWeight);
     TCo_.denominator->Fill(iEvent.eventAuxiliary().run());
 
     const std::string & hltpath = hltpaths_den[0]; 
 
+    unsigned int pileUp(0);
+    for (unsigned int i=0;i<vtxHandle->size();i++)
+      {if ( vtxHandle->at(i).isValid() && !vtxHandle->at(i).isFake() ) {pileUp++;}}
+
     //find the two muons
+    std::pair<bool,bool> matchedMuons(false,false);
+    std::pair<bool,bool> GoodMuQuality(false,false);
+    bool GoodDiMuQuality(false);
+
     unsigned int muonCollectionSize = (*muoHandle).size();
     // for (auto const & m : *muoHandle ) {
     for ( unsigned int m1IT=0;m1IT<muonCollectionSize;m1IT++ ) {
@@ -533,18 +553,23 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
       if ( verbosity_>10 ) {std::cout << "m1 index: " << m1IT << std::endl;}
       // if(false && !matchToTrigger(hltpath,m, handleTriggerEvent_)) continue;
       if(!matchToTrigger(hltpath,m)) {if ( verbosity_>10 ) {std::cout << "FAILED trigger matching." << std::endl;}continue;}
+      else {matchedMuons.first = true;}
       if(!muoSelection_ref(m)) {if ( verbosity_>10 ) {std::cout << "FAILED muon selection." << std::endl;}continue;}
+      else {GoodMuQuality.first = true;}
       // for (auto const & m1 : *muoHandle ) {
       for ( unsigned int m2IT=m1IT+1;m2IT<muonCollectionSize;m2IT++ ) {
 	auto const & m1 = (*muoHandle)[m2IT];
 	if ( verbosity_>10 ) {std::cout << "m2 index: " << m2IT << std::endl;}
         // if (m1.pt() == m.pt())continue;
-        if(!muoSelection_ref(m1)) {if ( verbosity_>10 ) {std::cout << "FAILED muon selection." << std::endl;}continue;}
 	// if(false && !matchToTrigger(hltpath,m1, handleTriggerEvent_)) continue;
 	if(!matchToTrigger(hltpath,m1)) {if ( verbosity_>10 ) {std::cout << "FAILED trigger matching." << std::endl;}continue;}
+	else {matchedMuons.second = true;}
+        if(!muoSelection_ref(m1)) {if ( verbosity_>10 ) {std::cout << "FAILED muon selection." << std::endl;}continue;}
+	else {GoodMuQuality.second = true;}
         if (enum_<10){
           if (!DMSelection_ref(m1.p4() + m.p4())) {if ( verbosity_>10 ) {std::cout << "FAILED DiMu cuts" << std::endl;}continue;}
           if (m.charge()*m1.charge()>0 ) {if ( verbosity_>10 ) {std::cout << "FAILED charge requirement." << std::endl;}continue;}
+	  GoodDiMuQuality = true;
         }
 
 	//calculate things
@@ -619,10 +644,10 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           mu2Pt_.denominator ->Fill(m1.pt());
           break; 
         case 4:
-          if (dimuonCL<minprob) {if ( verbosity_>10 ) {std::cout << "FAILED minprob" << std::endl;}continue;}
+          if (dimuonCL<minprob) {if ( verbosity_>10 ) {std::cout << "FAILED minprob requirement" << std::endl;}continue;}
           DiMuMass_.denominator ->Fill(DiMuMass);
-	  if ( hltpaths_den[0].find("HLT_DoubleMu4_3_Bs")!=std::string::npos )
-	    {std::cout << "SWdebug: filling DiMuMass_den (Bs)" << std::endl;}
+	  // if ( hltpaths_den[0].find("HLT_DoubleMu4_3_Bs")!=std::string::npos )
+	  //   {std::cout << "SWdebug: filling DiMuMass_den (Bs)" << std::endl;}
           if ((Jpsi_) && (!Upsilon_)){
             if (DiMuMass> maxmassJpsi || DiMuMass< minmassJpsi) 
 	      {if ( verbosity_>10 ) {std::cout << "FAILED jpsi mass requirement." << std::endl;}continue;}
@@ -631,6 +656,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
             if (DiMuMass> maxmassUpsilon || DiMuMass< minmassUpsilon)
 	      {if ( verbosity_>10 ) {std::cout << "FAILED upsilon mass requirement." << std::endl;}continue;}
           }
+	  if ( verbosity_>10 ) {std::cout << "filling denominator: " << hltpaths_den[0] << std::endl;}
           mu1Phi_.denominator->Fill(m.phi());
           mu1Eta_.denominator->Fill(m.eta());
           mu1Pt_.denominator ->Fill(m.pt());
@@ -642,6 +668,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           DiMuPhi_.denominator ->Fill((m1.p4()+m.p4()).Phi());
           DiMudR_.denominator ->Fill(reco::deltaR(m,m1));
 	  DiMuDS_.denominator->Fill(lxyS);
+	  PU_.denominator->Fill(pileUp);
           break;
         case 5:
           if (dimuonCL<minprob)continue;
@@ -895,8 +922,8 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	  }
 	  break;
 	} //switch(enum_)
-      }//m1
-    }//m
+      }//m2
+    }//m1
 
 
     if (enum_ == 7){//photons
@@ -909,6 +936,10 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
       }
 
     } 
+
+    if ( !matchedMuons.first || !matchedMuons.second ) {if (verbosity_>0) {std::cout << "FAILED trigger matching for the denominator." << std::endl;}return;}
+    if ( !GoodMuQuality.first || !GoodMuQuality.second ) {if (verbosity_>0) {std::cout << "FAILED muon requirements for the denominator." << std::endl;}return;}
+    if ( !GoodDiMuQuality && enum_<10 ) {if (verbosity_>0) {std::cout << "FAILED dimuon requirements for the denominator." << std::endl;}return;}
     //
     /////////
     //filling numerator hists
@@ -916,6 +947,8 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
     // iEvent.getByToken( hltInputTag_, handleTriggerEvent);
     if (handleTriggerEvent_->sizeFilters()== 0)return;
     PrescaleWeight = prescales_.prescaleValue( iEvent, iSetup, getTriggerName(hltpaths_num[0]) );  
+    if ( verbosity_>10 ) {std::cout << "event: " << iEvent.eventAuxiliary().event() << " accepted trigger: " << hltpaths_num[0] << " with prescale: " << PrescaleWeight << std::endl;}
+
     ps_.numerator->Fill(PrescaleWeight);
     TCo_.numerator->Fill(iEvent.eventAuxiliary().run());
 
@@ -926,6 +959,13 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
     //   if(!muoSelection_ref(m))continue;   
     //   for (auto const & m1 : *muoHandle ) {
     // for (auto const & m : *muoHandle ) {
+
+    //reset trigger checks
+    matchedMuons = std::make_pair(false,false);
+    GoodMuQuality = std::make_pair(false,false);
+    GoodDiMuQuality = false;
+
+    //find the two muons
     for ( unsigned int m1IT=0;m1IT<muonCollectionSize;m1IT++ ) {
       auto const & m = (*muoHandle)[m1IT];
       // if(false && !matchToTrigger(hltpath,m, handleTriggerEvent_)) continue;
@@ -1008,14 +1048,15 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	  mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
 	  break; 
 	case 4:
-	  if (dimuonCL<minprob)continue;
+	  if (dimuonCL<minprob) {if (verbosity_>10) {std::cout << "FAILED minprob requirement." << std::endl;}continue;}
 	  DiMuMass_.numerator ->Fill(DiMuMass);
 	  if ((Jpsi_) && (!Upsilon_)){
-	    if (DiMuMass> maxmassJpsi || DiMuMass< minmassJpsi)continue;
+	    if (DiMuMass> maxmassJpsi || DiMuMass< minmassJpsi) {if (verbosity_>10) {std::cout << "FAILED jpsi mass requirement." << std::endl;}continue;}
 	  }
 	  if ((!Jpsi_) && (Upsilon_)){
-	    if (DiMuMass> maxmassUpsilon || DiMuMass< minmassUpsilon)continue;
+	    if (DiMuMass> maxmassUpsilon || DiMuMass< minmassUpsilon) {if (verbosity_>10) {std::cout << "FAILED dimuon mass requirement." << std::endl;}continue;}
 	  }
+	  if ( verbosity_>10 ) {std::cout << "filling numerator: " << hltpaths_num[0] << std::endl;}
 	  mu1Phi_.numerator->Fill(m.phi(),PrescaleWeight);
 	  mu1Eta_.numerator->Fill(m.eta(),PrescaleWeight);
 	  mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
@@ -1027,6 +1068,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	  DiMuPhi_.numerator ->Fill((m1.p4()+m.p4()).Phi(),PrescaleWeight);
 	  DiMudR_.numerator ->Fill(reco::deltaR(m,m1),PrescaleWeight);
 	  DiMuDS_.numerator->Fill(lxyS);
+	  PU_.numerator->Fill(pileUp,PrescaleWeight);
 	  break;
 	case 5:
 	  if (dimuonCL<minprob)continue;
@@ -1277,6 +1319,11 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
         phPt_.numerator ->Fill(p.pt(),PrescaleWeight);
       }
     }
+
+   if ( !matchedMuons.first || !matchedMuons.second ) {if (verbosity_>0) {std::cout << "FAILED trigger matching for the denominator." << std::endl;}return;}
+    if ( !GoodMuQuality.first || !GoodMuQuality.second ) {if (verbosity_>0) {std::cout << "FAILED muon requirements for the denominator." << std::endl;}return;}
+    if ( !GoodDiMuQuality && enum_<10 ) {if (verbosity_>0) {std::cout << "FAILED dimuon requirements for the denominator." << std::endl;}return;}
+
   }
 }
 
@@ -1376,6 +1423,7 @@ void BPHMonitor::fillDescriptions(edm::ConfigurationDescriptions & descriptions)
   edm::ParameterSetDescription cosPSet;
   edm::ParameterSetDescription probPSet;
   edm::ParameterSetDescription TCoPSet;
+  edm::ParameterSetDescription PUPSet;
   fillHistoPSetDescription(phiPSet);
   fillHistoPSetDescription(ptPSet);
   fillHistoPSetDescription(etaPSet);
@@ -1388,6 +1436,7 @@ void BPHMonitor::fillDescriptions(edm::ConfigurationDescriptions & descriptions)
   fillHistoPSetDescription(cosPSet);
   fillHistoPSetDescription(probPSet);
   fillHistoPSetDescription(TCoPSet);
+  fillHistoPSetDescription(PUPSet);
   histoPSet.add<edm::ParameterSetDescription>("d0PSet", d0PSet);
   histoPSet.add<edm::ParameterSetDescription>("etaPSet", etaPSet);
   histoPSet.add<edm::ParameterSetDescription>("phiPSet", phiPSet);
@@ -1400,6 +1449,7 @@ void BPHMonitor::fillDescriptions(edm::ConfigurationDescriptions & descriptions)
   histoPSet.add<edm::ParameterSetDescription>("cosPSet", cosPSet);
   histoPSet.add<edm::ParameterSetDescription>("probPSet", probPSet);
   histoPSet.add<edm::ParameterSetDescription>("TCoPSet", TCoPSet);
+  histoPSet.add<edm::ParameterSetDescription>("PUPSet", PUPSet);
   desc.add<edm::ParameterSetDescription>("histoPSet",histoPSet);
 
   edm::ParameterSetDescription prescalePS;
