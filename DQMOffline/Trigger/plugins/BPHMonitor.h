@@ -196,7 +196,8 @@ private:
   StringCutObjectSelector<reco::Track,true>        trSelection_;
   StringCutObjectSelector<reco::Track,true>        trSelection_ref;
   StringCutObjectSelector<reco::Candidate::LorentzVector,true>        DMSelection_ref;
-
+  HLTConfigProvider hltConfig_;
+  std::string getTriggerName(std::string partialName);
 };
 
 #endif // METMONITOR_H

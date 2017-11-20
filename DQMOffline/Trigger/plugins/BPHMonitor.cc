@@ -130,6 +130,7 @@ BPHMonitor::~BPHMonitor()
 {
   if (num_genTriggerEventFlag_) delete num_genTriggerEventFlag_;
   if (den_genTriggerEventFlag_) delete den_genTriggerEventFlag_;
+  delete hltPrescale_;
 }
 
 MEbinning BPHMonitor::getHistoPSet(edm::ParameterSet pset)
@@ -535,12 +536,15 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
   // Initialize the GenericTriggerEventFlag
   if ( num_genTriggerEventFlag_ && num_genTriggerEventFlag_->on() ) num_genTriggerEventFlag_->initRun( iRun, iSetup );
   if ( den_genTriggerEventFlag_ && den_genTriggerEventFlag_->on() ) den_genTriggerEventFlag_->initRun( iRun, iSetup );
-  bool changed = false;
+  bool changed = true;
+
   if(!hltPrescale_->init(iRun,iSetup,"HLT",changed) )
   {
-    return;
+    std::cout<<"prescale module init failed"<<std::endl;
+//    return;
   }
-
+  else std::cout<<"prescale module init succeded"<<std::endl;
+  hltConfig_ = hltPrescale_->hltConfigProvider();
 }
 
 #include "FWCore/Framework/interface/ESHandle.h"
@@ -571,12 +575,14 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 //
   double PrescaleWeight =1;
   int PrescaleSet = hltPrescale_->prescaleSet(iEvent, iSetup);
-  std::cout<<"PrescaleSet = "<<PrescaleSet<<std::endl;
+  const std::string & hltpath = getTriggerName(hltpaths_den[0]);
+  const std::string & hltpath1 =getTriggerName(hltpaths_num[0]);
+//  std::cout<<"PrescaleSet = "<<PrescaleSet<<std::endl;
+//  std::cout<<"hltnum = "<<hltpath1<<std::endl;
   if (tnp_>0) {//TnP method 
     if (den_genTriggerEventFlag_->on() && ! den_genTriggerEventFlag_->accept( iEvent, iSetup) ) return;
     iEvent.getByToken( hltInputTag_, handleTriggerEvent);
     if (handleTriggerEvent->sizeFilters()== 0)return;
-    const std::string & hltpath = hltpaths_num[0]; 
     std::vector<reco::Muon> tagMuons;
     for ( auto const & m : *muoHandle ) {//applying tag selection 
       if(false && !matchToTrigger(hltpath,m, handleTriggerEvent)) continue;
@@ -590,7 +596,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           muPhi_.denominator->Fill(m.phi());
           muEta_.denominator->Fill(m.eta());
           muPt_.denominator ->Fill(m.pt());
-          if (muoSelection_( m )){
+          if (muoSelection_( m ) && num_genTriggerEventFlag_->on() && num_genTriggerEventFlag_->accept( iEvent, iSetup)){
             muPhi_.numerator->Fill(m.phi(),PrescaleWeight);
             muEta_.numerator->Fill(m.eta(),PrescaleWeight);
             muPt_.numerator ->Fill(m.pt(),PrescaleWeight);
@@ -606,7 +612,6 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
     if (den_genTriggerEventFlag_->on() && ! den_genTriggerEventFlag_->accept( iEvent, iSetup) ) return;
     iEvent.getByToken( hltInputTag_, handleTriggerEvent);
     if (handleTriggerEvent->sizeFilters()== 0)return;
-    const std::string & hltpath = hltpaths_den[0]; 
     for (auto const & m : *muoHandle ) {
       if(false && !matchToTrigger(hltpath,m, handleTriggerEvent)) continue;
       if(!muoSelection_ref(m))continue;   
@@ -670,13 +675,15 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           DiMuPhi_.denominator ->Fill((m1.p4()+m.p4()).Phi());
           if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
           {
-            const std::string & hltpath1 = hltpaths_num[0];
+            //const std::string const std::string & hltpath1 hltpath1 = hltpaths_num[0];
             int  PrescleHLT=1, PrescleHLT1=1;
             int PrescleL1 = 1;
-            PrescleHLT1 =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
+            PrescleHLT =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
+            std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
             //PrescleL1 = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).first;//
-            //PrescleHLT = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
-            if (PrescleHLT>1)std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
+            //PrescleHLT= (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
+//            
+            std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
             PrescaleWeight = PrescleL1 * PrescleHLT;
 
             if(false && !matchToTrigger(hltpath1,m1, handleTriggerEvent)) continue;
@@ -707,13 +714,13 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
           {
          //std::cout<<"inside num"<<enum_<<std::endl;
-            const std::string & hltpath1 = hltpaths_num[0];
+            //const std::string const std::string & hltpath1 hltpath1 = hltpaths_num[0];
             int  PrescleHLT=1, PrescleHLT1=1;
             int PrescleL1 = 1;
-            PrescleHLT1 =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
+            PrescleHLT =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
             //PrescleL1 = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).first;//
-            //PrescleHLT = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
-            if (PrescleHLT>1)std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
+            //PrescleHLT= (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
+            std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
             PrescaleWeight = PrescleL1 * PrescleHLT;
             if(false && !matchToTrigger(hltpath1,m1, handleTriggerEvent)) continue;
             if(false && !matchToTrigger(hltpath1,m, handleTriggerEvent)) continue;
@@ -729,13 +736,13 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) && muoSelection_ref(m1))
           {
          //std::cout<<"inside num"<<enum_<<std::endl;
-            const std::string & hltpath1 = hltpaths_num[0];
+            //const std::string const std::string & hltpath1 hltpath1 = hltpaths_num[0];
             int  PrescleHLT=1, PrescleHLT1=1;
             int PrescleL1 = 1;
-            PrescleHLT1 =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
+            PrescleHLT =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
             //PrescleL1 = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).first;//
-            //PrescleHLT = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
-            if (PrescleHLT>1)std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
+            //PrescleHLT= (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
+            std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
             PrescaleWeight = PrescleL1 * PrescleHLT;
             if (seagull_ && ((m.charge()* deltaPhi(m.phi(), m1.phi())) > 0.) )continue;
             if(false && !matchToTrigger(hltpath1,m1, handleTriggerEvent)) continue;          
@@ -761,13 +768,13 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
           {
          //std::cout<<"inside num"<<enum_<<std::endl;
-            const std::string & hltpath1 = hltpaths_num[0];
+            //const std::string const std::string & hltpath1 hltpath1 = hltpaths_num[0];
             int  PrescleHLT=1, PrescleHLT1=1;
             int PrescleL1 = 1;
-            PrescleHLT1 =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
+            PrescleHLT =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
             //PrescleL1 = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).first;//
-            //PrescleHLT = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
-            if (PrescleHLT>1)std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
+            //PrescleHLT= (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
+            std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
             PrescaleWeight = PrescleL1 * PrescleHLT;
             if (seagull_ && ((m.charge()* deltaPhi(m.phi(), m1.phi())) > 0.) )continue;
             if(false && !matchToTrigger(hltpath1,m1, handleTriggerEvent)) continue;
@@ -806,13 +813,13 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
           {
          //std::cout<<"inside num"<<enum_<<std::endl;
-            const std::string & hltpath1 = hltpaths_num[0];
+            //const std::string const std::string & hltpath1 hltpath1 = hltpaths_num[0];
             int  PrescleHLT=1, PrescleHLT1=1;
             int PrescleL1 = 1;
-            PrescleHLT1 =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
+            PrescleHLT =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
             //PrescleL1 = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).first;//
-            //PrescleHLT = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
-            if (PrescleHLT>1)std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
+            //PrescleHLT= (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
+            std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
             PrescaleWeight = PrescleL1 * PrescleHLT;
             if (seagull_ && ((m.charge()* deltaPhi(m.phi(), m1.phi())) > 0.) )continue;
             if(false && !matchToTrigger(hltpath1,m1, handleTriggerEvent)) continue;
@@ -853,13 +860,13 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
             if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
             {
            //std::cout<<"inside num"<<enum_<<std::endl;
-              const std::string & hltpath1 = hltpaths_num[0];
+              //const std::string const std::string & hltpath1 hltpath1 = hltpaths_num[0];
               int  PrescleHLT=1, PrescleHLT1=1;
               int PrescleL1 = 1;
-              PrescleHLT1 =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
+              PrescleHLT =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
               //PrescleL1 = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).first;//
-              //PrescleHLT = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
-              if (PrescleHLT>1)std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
+              //PrescleHLT= (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
+              std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
               PrescaleWeight = PrescleL1 * PrescleHLT;
               if(false && !matchToTrigger(hltpath1,m1, handleTriggerEvent)) continue;
               if(false && !matchToTrigger(hltpath1,m, handleTriggerEvent)) continue;
@@ -890,13 +897,13 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
               if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
               {
              //std::cout<<"inside num"<<enum_<<std::endl;
-                const std::string & hltpath1 = hltpaths_num[0];
+                //const std::string const std::string & hltpath1 hltpath1 = hltpaths_num[0];
                 int  PrescleHLT=1, PrescleHLT1=1;
                 int PrescleL1 = 1;
-                PrescleHLT1 =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
+                PrescleHLT =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
                 //PrescleL1 = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).first;//
-                //PrescleHLT = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
-                if (PrescleHLT>1)std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
+                //PrescleHLT= (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
+                std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
                 PrescaleWeight = PrescleL1 * PrescleHLT;
 
                 if(false && !matchToTrigger(hltpath1,p, handleTriggerEvent)) continue;
@@ -925,13 +932,14 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
           {
          //std::cout<<"inside num"<<enum_<<std::endl;
-            const std::string & hltpath1 = hltpaths_num[0];
+            //const std::string const std::string & hltpath1 hltpath1 = hltpaths_num[0];
                 int  PrescleHLT=1, PrescleHLT1=1;
                 int PrescleL1 = 1;
-                PrescleHLT1 =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
+
+                PrescleHLT =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
                 //PrescleL1 = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).first;//
-                //PrescleHLT = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
-                if (PrescleHLT>1)std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
+                //PrescleHLT= (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
+                std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
                 PrescaleWeight = PrescleL1 * PrescleHLT;
  
             if(false && !matchToTrigger(hltpath1,m1, handleTriggerEvent)) continue;
@@ -947,13 +955,13 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
           {
          //std::cout<<"inside num"<<enum_<<std::endl;
-            const std::string & hltpath1 = hltpaths_num[0];
+            //const std::string const std::string & hltpath1 hltpath1 = hltpaths_num[0];
                 int  PrescleHLT=1, PrescleHLT1=1;
                 int PrescleL1 = 1;
-                PrescleHLT1 =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
+                PrescleHLT =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
                 //PrescleL1 = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).first;//
-                //PrescleHLT = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
-                if (PrescleHLT>1)std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
+                //PrescleHLT= (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
+                std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
                 PrescaleWeight = PrescleL1 * PrescleHLT;
 
             if(false && !matchToTrigger(hltpath1,m1, handleTriggerEvent)) continue;
@@ -1023,13 +1031,13 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
             if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
             {
          //std::cout<<"inside num"<<enum_<<std::endl;
-              const std::string & hltpath1 = hltpaths_num[0];
+              //const std::string const std::string & hltpath1 hltpath1 = hltpaths_num[0];
                 int  PrescleHLT=1, PrescleHLT1=1;
                 int PrescleL1 = 1;
-                PrescleHLT1 =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
+                PrescleHLT =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
                 //PrescleL1 = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).first;//
-                //PrescleHLT = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
-                if (PrescleHLT>1)std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
+                //PrescleHLT= (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
+                std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
                 PrescaleWeight = PrescleL1 * PrescleHLT;
 
               if(false && !matchToTrigger(hltpath1,m1, handleTriggerEvent)) continue;
@@ -1089,13 +1097,13 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
           {
          //std::cout<<"inside num"<<enum_<<std::endl;
-            const std::string & hltpath1 = hltpaths_num[0];
+            //const std::string const std::string & hltpath1 hltpath1 = hltpaths_num[0];
                 int  PrescleHLT=1, PrescleHLT1=1;
                 int PrescleL1 = 1;
-                PrescleHLT1 =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
-                //PrescleL1 = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).first;//
-                //PrescleHLT = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
-                if (PrescleHLT>1)std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
+                PrescleHLT =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
+          //      PrescleL1 = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).first;//
+                //PrescleHLT= (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
+                std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
                 PrescaleWeight = PrescleL1 * PrescleHLT;
 
             if(false && !matchToTrigger(hltpath1,m1, handleTriggerEvent)) continue;
@@ -1178,13 +1186,13 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
               if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
               {
            //std::cout<<"inside num"<<enum_<<std::endl;
-                const std::string & hltpath1 = hltpaths_num[0];
+                //const std::string const std::string & hltpath1 hltpath1 = hltpaths_num[0];
                 int  PrescleHLT=1, PrescleHLT1=1;
                 int PrescleL1 = 1;
-                PrescleHLT1 =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
+                PrescleHLT =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
                 //PrescleL1 = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).first;//
-                //PrescleHLT = (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
-                if (PrescleHLT>1)std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
+                //PrescleHLT= (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
+                std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
                 PrescaleWeight = PrescleL1 * PrescleHLT;
 
                 if(false && !matchToTrigger(hltpath1,m1, handleTriggerEvent)) continue;
@@ -1360,7 +1368,22 @@ bool BPHMonitor::matchToTrigger(const std::string  &theTriggerName , T t, edm::H
   else {cout<<theTriggerName<<"\t\tNo HLT filters"<<endl; return false;}
 }
 
+std::string BPHMonitor::getTriggerName(std::string partialName) {
 
+  const std::string trigger_name_tmp = partialName.substr(0,partialName.find("v*"));
+  const unsigned int Ntriggers(hltConfig_.size());
+  std::string trigger_name = "";
+  for (unsigned int i=0;i<Ntriggers;i++)
+    {
+      trigger_name = hltConfig_.triggerName(i);
+      if ( trigger_name.find(trigger_name_tmp) != std::string::npos ) 
+  {break;}
+    }
+  if ( trigger_name=="" ) 
+    {std::cout << "WARNING: Could not find the trigger name." << std::endl;}
+
+  return trigger_name;
+}
 
 
 // Define this as a plug-in
