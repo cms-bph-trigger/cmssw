@@ -961,7 +961,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	  }
 	  break;
 	case 11:
-	  case11_selection(dimuonCL, jpsi_cos, displacementFromBeamspotJpsi, jerr, trHandle, hltpath, handleTriggerEvent, m, m1, bFieldHandle, vertexBeamSpot, mu1Phi_.numerator, mu1Eta_.numerator, mu1Pt_.numerator, mu2Phi_.numerator, mu2Eta_.numerator, mu2Pt_.numerator);
+	  case11_selection(dimuonCL, jpsi_cos, displacementFromBeamspotJpsi, jerr, trHandle, hltpath1, handleTriggerEvent, m, m1, bFieldHandle, vertexBeamSpot, mu1Phi_.numerator, mu1Eta_.numerator, mu1Pt_.numerator, mu2Phi_.numerator, mu2Eta_.numerator, mu2Pt_.numerator);
 	  break;
 	} 
       }
