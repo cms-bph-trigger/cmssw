@@ -146,6 +146,8 @@ private:
   METME  phPhi_   ;
   METME  phEta_   ;
   METME  phPt_   ;
+
+  
   METME  DiMuPhi_   ;
   METME  DiMuEta_   ;
   METME  DiMuPt_   ;
@@ -166,6 +168,9 @@ private:
   StringCutObjectSelector<reco::Muon,true>        muoSelection_ref;
   StringCutObjectSelector<reco::Muon,true>        muoSelection_tag;
   StringCutObjectSelector<reco::Muon,true>        muoSelection_probe;
+  StringCutObjectSelector<reco::Photon,true> photonSelection_;
+  unsigned int nphotons_;
+
   int nmuons_;
   bool tnp_;
   int L3_;
