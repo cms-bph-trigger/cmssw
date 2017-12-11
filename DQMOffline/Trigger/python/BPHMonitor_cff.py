@@ -527,8 +527,9 @@ Dimuon0_photon1.PrescaleTriggerEventPSet.prescaleWeightHltPaths = cms.vstring("H
 #Dimuon0_photon1.numGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu4_SQ_OS_EG12")
 Dimuon0_photon1.denGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_DoubleMu20_7_Mass0to30_L1_DM4EG_v*")
 #Dimuon0_photon1.denGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu4_SQ_OS_EG12")
-Dimuon0_photon1.muoSelection_ref = cms.string("pt>10 && abs(eta)<2.4 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
-Dimuon0_photon1.DMSelection_ref = cms.string("M<30 && abs(Eta)<2.4")
+Dimuon0_photon1.muoSelection_ref = cms.string("pt>7.0 && abs(eta)<2.4 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
+Dimuon0_photon1.DMSelection_ref = cms.string("M<15 && abs(Eta)<2.4")
+Dimuon0_photon1.photonSelection = cms.string("( abs(eta)<1.4442 && hadTowOverEm<0.12 && full5x5_sigmaIetaIeta()<0.015 && full5x5_r9>.5)||( abs(eta)<2.5 && abs(eta)>1.5556 && hadTowOverEm<0.12 && full5x5_sigmaIetaIeta()<0.035 && full5x5_r9>.8)")
 
 
 Dimuon0_photon2 = hltBPHmonitoring.clone()
@@ -540,8 +541,55 @@ Dimuon0_photon2.PrescaleTriggerEventPSet.prescaleWeightHltPaths = cms.vstring("H
 #Dimuon0_photon2.numGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu4_SQ_OS_EG12")
 Dimuon0_photon2.denGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_DoubleMu20_7_Mass0to30_L1_DM4_v*")
 #Dimuon0_photon2.denGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu4_SQ_OS")
-Dimuon0_photon2.muoSelection_ref = cms.string("pt>10 && abs(eta)<2.4 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
-Dimuon0_photon2.DMSelection_ref = cms.string("M<30 && abs(Eta)<2.4")
+Dimuon0_photon2.muoSelection_ref = cms.string("pt>7.0 && abs(eta)<2.4 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
+Dimuon0_photon2.DMSelection_ref = cms.string("M<15 && abs(Eta)<2.4")
+Dimuon0_photon2.photonSelection = cms.string("( abs(eta)<1.4442 && hadTowOverEm<0.12 && full5x5_sigmaIetaIeta()<0.015 && full5x5_r9>.5)||( abs(eta)<2.5 && abs(eta)>1.5556 && hadTowOverEm<0.12 && full5x5_sigmaIetaIeta()<0.035 && full5x5_r9>.8)")
+
+###photon 
+Dimuon0_photon3 = hltBPHmonitoring.clone()
+Dimuon0_photon3.FolderName = cms.string('HLT/BPH/DiMu0_Lowmass_L1_photon3/')
+Dimuon0_photon3.tnp = cms.bool(False)
+Dimuon0_photon3.enum = cms.int32(7)
+Dimuon0_photon3.numGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_DoubleMu20_7_Mass0to30_Photon23_v*")
+Dimuon0_photon3.PrescaleTriggerEventPSet.prescaleWeightHltPaths = cms.vstring("HLT_DoubleMu20_7_Mass0to30_Photon23_v*")
+#Dimuon0_photon1.numGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu4_SQ_OS_EG12")
+Dimuon0_photon3.denGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_DoubleMu20_7_Mass0to30_L1_DM4_v*")
+#Dimuon0_photon1.denGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu4_SQ_OS_EG12")
+Dimuon0_photon3.muoSelection_ref = cms.string("pt>7.0 && abs(eta)<2.4 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
+Dimuon0_photon3.DMSelection_ref = cms.string("M<15 && abs(Eta)<2.4")
+Dimuon0_photon3.photonSelection = cms.string("( abs(eta)<1.4442 && hadTowOverEm<0.12 && full5x5_sigmaIetaIeta()<0.015 && full5x5_r9>.5)||( abs(eta)<2.5 && abs(eta)>1.5556 && hadTowOverEm<0.12 && full5x5_sigmaIetaIeta()<0.035 && full5x5_r9>.8)")
+
+
+Dimuon0_ZtoUpsilonPhoton = hltBPHmonitoring.clone()
+Dimuon0_ZtoUpsilonPhoton.FolderName = cms.string('HLT/BPH/DiMu0_L3TnP_ZtoUpsilonPhoton1/')
+Dimuon0_ZtoUpsilonPhoton.tnp = cms.bool(True)
+Dimuon0_ZtoUpsilonPhoton.L3 = cms.int32(1)
+Dimuon0_ZtoUpsilonPhoton.enum = cms.int32(1)
+Dimuon0_ZtoUpsilonPhoton.numGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_DoubleMu20_7_Mass0to30_Photon23_v*")
+Dimuon0_ZtoUpsilonPhoton.PrescaleTriggerEventPSet.prescaleWeightHltPaths = cms.vstring("HLT_DoubleMu20_7_Mass0to30_Photon23_v*")
+Dimuon0_ZtoUpsilonPhoton.denGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_DoubleMu20_7_Mass0to30_L1_DM4_v*")
+Dimuon0_ZtoUpsilonPhoton.muoSelection_ref = cms.string("pt>7.0 &  abs(eta)<2.4 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
+Dimuon0_ZtoUpsilonPhoton.muoSelection = cms.string("abs(eta)<2.4 & isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
+Dimuon0_ZtoUpsilonPhoton.DMSelection_ref = cms.string("M<3.4 && abs(Eta)<2.4")
+
+
+Dimuon0_ZtoUpsilonPhoton2 = hltBPHmonitoring.clone()
+Dimuon0_ZtoUpsilonPhoton2.FolderName = cms.string('HLT/BPH/DiMu0_L3TnP_ZtoUpsilonPhoton2/')
+Dimuon0_ZtoUpsilonPhoton2.tnp = cms.bool(True)
+Dimuon0_ZtoUpsilonPhoton2.L3 = cms.int32(1)
+Dimuon0_ZtoUpsilonPhoton2.enum = cms.int32(1)
+Dimuon0_ZtoUpsilonPhoton2.numGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_DoubleMu20_7_Mass0to30_Photon23_v*")
+Dimuon0_ZtoUpsilonPhoton2.PrescaleTriggerEventPSet.prescaleWeightHltPaths = cms.vstring("HLT_DoubleMu20_7_Mass0to30_Photon23_v*")
+Dimuon0_ZtoUpsilonPhoton2.denGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_Mu8_v*")
+Dimuon0_ZtoUpsilonPhoton2.muoSelection_ref = cms.string("pt>7.0 &  abs(eta)<2.4 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
+Dimuon0_ZtoUpsilonPhoton2.muoSelection = cms.string("abs(eta)<2.4 & isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
+Dimuon0_ZtoUpsilonPhoton2.DMSelection_ref = cms.string("M<3.4 && abs(Eta)<2.4")
+
+###
+
+
+
+##Dimuon0_Upsilon_tnp2.muoSelection = cms.string("abs(eta)<2.4 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
 
 ###
 ###L3 TnP
@@ -787,60 +835,63 @@ DimuonX_HLT_OS_Vtx.muoSelection_ref = cms.string('abs(eta)<2.4 & isPFMuon & isGl
 ###
 
 bphHLTmonitoring = cms.Sequence(
-    Dimuon0_Upsilon_tnp
-    + Dimuon0_Upsilon_tnp1
-    + Dimuon0_Upsilon_tnp2
-    + Dimuon25_Jpsi_tnp
-    + Dimuon0_Jpsi_tnp
-    + Dimuon0_Jpsi_tnp1
-    + Dimuon0_Jpsi_tnp2
-    + Dimuon0_Jpsi_OS
-    + Dimuon0_er
-    + Dimuon0_Upsilon_er
-    + Dimuon0_dRcut
-    + DMu4_3_Bs_dRcut
-    + DMu4_3_Jpsi_dRcut
-    + Dimuon14_Phi_dRcut
-    + Dimuon20_Jpsi_dRcut
-    + Dimuon10_PsiPrime_dRcut
-    + DMu4_LowMassNonResonantTrk_Displaced_dRcut
-    + DMu4_JpsiTrk_Displaced_dRcut
-    + DMu4_PsiPrimeTrk_Displaced_dRcut
-    + Dimuon25_Jpsi_dRcut
-    + Dimuon18_PsiPrime_dRcut
-    + Dimuon12_Upsilon_dRcut
-    + Dimuon25_Jpsi_dRcut_low
-    + Dimuon18_Jpsi_dRcut_low
-    + DMu4_PsiPrimeTrk_Displaced_dRcut_low
-    + DMu4_JpsiTrk_Displaced_dRcut_low
-    + DMu4_LowMassNonResonantTrk_Displaced_dRcut_low
-    + Dimuon20_masscut1
-    + Dimuon12_masscut2
-    + Dimuon0_Upsilon_masscut
-    + Trimuon2_masscut4
-    + Trimuon2_masscut5
-    + Trimuon2_masscut6
-    + Dimuon0_masscut3
-    + Dimuon0_tripleMu1
-    + Dimuon0_tripleMu2
-    + Dimuon0_tripleMu3
-#    + Dimuon0_photon1
-#    + Dimuon0_photon2
-    + Dimuon0_L3TnP_Jpsi
-    + Dimuon0_L3TnP_Upsilon
-    + Dimuon0_HLT_OS
-    + Dimuon0_HLT_OS1
-    + Dimuon0_looseVtx_Jpsi
-    + Dimuon0_looseVtx_Upsilon
-    + Dimuon0_tightVtx_Jpsi
-    + Dimuon0_addTrack_Jpsi
-    + Dimuon0_addTrackTrack_Jpsi
-    + DM2_Jpsi_addTrackTrack_Phi
-    + DM2_Jpsi_addTkMuTkMu_Phi
-    + Dimuon0_addTrackMu_Onia
-    + Dimuon0_addTrackMu_Phi
-    + Dimuon0_addTrackMu_Onia1
-    + Dimuon0_addTrackMu_Phi1
+#     Dimuon0_Upsilon_tnp
+#     + Dimuon0_Upsilon_tnp1
+#     + Dimuon0_Upsilon_tnp2
+#     + Dimuon25_Jpsi_tnp
+#     + Dimuon0_Jpsi_tnp
+#     + Dimuon0_Jpsi_tnp1
+#     + Dimuon0_Jpsi_tnp2
+#     + Dimuon0_Jpsi_OS
+#     + Dimuon0_er
+#     + Dimuon0_Upsilon_er
+#     + Dimuon0_dRcut
+#     + DMu4_3_Bs_dRcut
+#     + DMu4_3_Jpsi_dRcut
+#     + Dimuon14_Phi_dRcut
+#     + Dimuon20_Jpsi_dRcut
+#     + Dimuon10_PsiPrime_dRcut
+#     + DMu4_LowMassNonResonantTrk_Displaced_dRcut
+#     + DMu4_JpsiTrk_Displaced_dRcut
+#     + DMu4_PsiPrimeTrk_Displaced_dRcut
+#     + Dimuon25_Jpsi_dRcut
+#     + Dimuon18_PsiPrime_dRcut
+#     + Dimuon12_Upsilon_dRcut
+#     + Dimuon25_Jpsi_dRcut_low
+#     + Dimuon18_Jpsi_dRcut_low
+#     + DMu4_PsiPrimeTrk_Displaced_dRcut_low
+#     + DMu4_JpsiTrk_Displaced_dRcut_low
+#     + DMu4_LowMassNonResonantTrk_Displaced_dRcut_low
+#     + Dimuon20_masscut1
+#     + Dimuon12_masscut2
+#     + Dimuon0_Upsilon_masscut
+#     + Trimuon2_masscut4
+#     + Trimuon2_masscut5
+#     + Trimuon2_masscut6
+#     + Dimuon0_masscut3
+#     + Dimuon0_tripleMu1
+#     + Dimuon0_tripleMu2
+#     + Dimuon0_tripleMu3
+     Dimuon0_photon1
+    + Dimuon0_photon2
+    + Dimuon0_photon3
+    + Dimuon0_ZtoUpsilonPhoton
+    + Dimuon0_ZtoUpsilonPhoton2
+#     + Dimuon0_L3TnP_Jpsi
+#     + Dimuon0_L3TnP_Upsilon
+#     + Dimuon0_HLT_OS
+#     + Dimuon0_HLT_OS1
+#     + Dimuon0_looseVtx_Jpsi
+#     + Dimuon0_looseVtx_Upsilon
+#     + Dimuon0_tightVtx_Jpsi
+#     + Dimuon0_addTrack_Jpsi
+#     + Dimuon0_addTrackTrack_Jpsi
+#     + DM2_Jpsi_addTrackTrack_Phi
+#     + DM2_Jpsi_addTkMuTkMu_Phi
+#     + Dimuon0_addTrackMu_Onia
+#     + Dimuon0_addTrackMu_Phi
+#     + Dimuon0_addTrackMu_Onia1
+#     + Dimuon0_addTrackMu_Phi1
    # + DimuonX_HLT_OS_Vtx
 )
 
