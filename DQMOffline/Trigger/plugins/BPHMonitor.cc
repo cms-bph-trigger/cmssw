@@ -33,6 +33,8 @@ BPHMonitor::BPHMonitor( const edm::ParameterSet& iConfig ) :
   , muoSelection_ref ( iConfig.getParameter<std::string>("muoSelection_ref") )
   , muoSelection_tag ( iConfig.getParameter<std::string>("muoSelection_tag") )
   , muoSelection_probe ( iConfig.getParameter<std::string>("muoSelection_probe") )
+  , photonSelection_ ( iConfig.getParameter<std::string>("photonSelection") )
+  , nphotons_      ( iConfig.getParameter<unsigned int>("nphotons" ) )
   , nmuons_ ( iConfig.getParameter<int>("nmuons" ) )
   , tnp_ ( iConfig.getParameter<bool>("tnp" ) )
   , L3_ ( iConfig.getParameter<int>("L3" ) )
@@ -229,6 +231,19 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
   if (trOrMu_) trMuPh = "tr"; else if (Ph_) trMuPh = "ph"; else trMuPh = "mu";
 
   if (enum_ == 7 || enum_ == 1 || enum_ == 9 || enum_ == 10) {  
+    //emc
+    histname ="phEta"; histtitle = "ph_Eta";
+    bookME(ibooker,phEta_,histname,histtitle, eta_binning_);
+    setMETitle(phEta_,"ph_#eta","events/ ");
+    
+    histname = "phPt"; histtitle = "ph_P_{t}";
+    bookME(ibooker,phPt_,histname,histtitle, pt_binning_);
+    setMETitle(phPt_,"ph_Pt[GeV]","events/1GeV");
+    
+    histname ="phPhi"; histtitle ="ph_Phi";
+    bookME(ibooker,phPhi_,histname,histtitle, phi_binning_);
+    setMETitle(phPhi_,"ph_#phi","events / 0.1 rad");
+
     histname = trMuPh+"Pt"; histtitle = trMuPh+"_P_{t}";
     bookME(ibooker,muPt_,histname,histtitle, pt_binning_);
     setMETitle(muPt_,trMuPh+"_Pt[GeV]","events / 1 GeV");
@@ -240,6 +255,52 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
     histname = trMuPh+"Eta"; histtitle = trMuPh+"_Eta";
     bookME(ibooker,muEta_,histname,histtitle, eta_binning_);
     setMETitle(muEta_,trMuPh+"_#eta","events / 0.2");
+    ///
+    histname = "mu1Pt"; histtitle = "mu1_P_{t}";
+    bookME(ibooker,mu1Pt_,histname,histtitle, pt_binning_);
+    setMETitle(mu1Pt_,"mu1_Pt[GeV]","events / 1 GeV");
+
+    histname = "mu1Phi"; histtitle = "mu1Phi";
+    bookME(ibooker,mu1Phi_,histname,histtitle, phi_binning_);
+    setMETitle(mu1Phi_,"mu1_#phi","events / 0.1 rad");
+  
+    histname = "mu1Eta"; histtitle = "mu1_Eta";
+    bookME(ibooker,mu1Eta_,histname,histtitle, eta_binning_);
+    setMETitle(mu1Eta_,"mu1_#eta","events / 0.2");
+
+    histname = "mu2Pt"; histtitle = "mu2_P_{t}";
+    bookME(ibooker,mu2Pt_,histname,histtitle, pt_binning_);
+    setMETitle(mu2Pt_,"mu2_Pt[GeV]","events / 1 GeV");
+
+    histname = "mu2Phi"; histtitle = "mu2Phi";
+    bookME(ibooker,mu2Phi_,histname,histtitle, phi_binning_);
+    setMETitle(mu2Phi_,"mu2_#phi","events / 0.1 rad");
+
+    histname = "mu2Eta"; histtitle = "mu2_Eta";
+    bookME(ibooker,mu2Eta_,histname,histtitle, eta_binning_);
+    setMETitle(mu2Eta_,"mu2_#eta","events / 0.2");
+    
+      //   
+    histname = "DiMudR"; histtitle = "DiMudR";
+	bookME(ibooker,DiMudR_,histname,histtitle, dR_binning_);
+	setMETitle(DiMudR_,"DiMu_#dR","events /");
+	
+    histname = "DiMuEta"; histtitle = "DiMuEta";
+    bookME(ibooker,DiMuEta_,histname,histtitle, eta_binning_);
+    setMETitle(DiMuEta_,"DiMu#eta","events / 0.2");
+
+    histname = "DiMuPt"; histtitle = "DiMu_P_{t}";
+    bookME(ibooker,DiMuPt_,histname,histtitle, pt_binning_);
+    setMETitle(DiMuPt_,"DiMu_Pt[GeV]","events / 1 GeV");
+
+    histname = "DiMuPhi"; histtitle = "DiMuPhi";
+    bookME(ibooker,DiMuPhi_,histname,histtitle, phi_binning_);
+    setMETitle(DiMuPhi_,"DiMu_#phi","events / 0.1 rad");
+    
+    histname = "DiMuMass"; histtitle = "DiMuMass";
+	bookME(ibooker,DiMuMass_,histname,histtitle, mass_binning_);
+	 setMETitle(DiMuMass_,"DiMu_#mass","events /");
+	
   }
   else {
     histname = trMuPh+"1Pt"; histtitle = trMuPh+"1_P_{t}";
@@ -265,8 +326,8 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
     histname = trMuPh+"2Eta"; histtitle = trMuPh+"2_Eta";
     bookME(ibooker,mu2Eta_,histname,histtitle, eta_binning_);
     setMETitle(mu2Eta_,trMuPh+"_#eta","events / 0.2");
-
-    if (enum_ == 6) {
+    
+if (enum_ == 6) {
       histname = trMuPh+"3Eta"; histtitle = trMuPh+"3Eta";
       bookME(ibooker,mu3Eta_,histname,histtitle, eta_binning_);
       setMETitle(mu3Eta_,trMuPh+"3#eta","events / 0.2");
@@ -357,7 +418,11 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 
   edm::Handle<reco::PhotonCollection> phHandle;
   iEvent.getByToken( phToken_, phHandle );
-
+  if ( !phHandle.isValid()) {
+    edm::LogInfo(folderName_) << "Error! Can't get the product: phtoken_" << endl;
+  }
+  std::vector<reco::Photon> photons;
+  photons.clear();
 
   edm::Handle<edm::TriggerResults> handleTriggerTrigRes; 
 
@@ -542,6 +607,17 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
   
 	case 7: // the hists for photon monitoring will be filled on 515 line
 	  tnp_=false;
+	  	mu1Phi_.denominator->Fill(m.phi());
+	    mu1Eta_.denominator->Fill(m.eta());
+	    mu1Pt_.denominator ->Fill(m.pt());
+	    mu2Phi_.denominator->Fill(m1.phi());
+	    mu2Eta_.denominator->Fill(m1.eta());
+	    mu2Pt_.denominator ->Fill(m1.pt());
+	    DiMuPt_.denominator ->Fill((m1.p4()+m.p4()).Pt() );
+	    DiMuEta_.denominator ->Fill((m1.p4()+m.p4()).Eta() );
+	    DiMuPhi_.denominator ->Fill((m1.p4()+m.p4()).Phi());
+	    DiMudR_.denominator ->Fill(reco::deltaR(m,m1));
+	    DiMuMass_.denominator ->Fill(DiMuMass);
 	  break;
  
 	case 8: // vtx monitoring, filling probability, DS, DCA, cos of pointing angle to the PV, eta, pT of dimuon
@@ -688,12 +764,17 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
       const std::string & hltpath = hltpaths_den[0];
       for (auto const & p : *phHandle) {
 	if (false && !matchToTrigger(hltpath,p, handleTriggerEvent)) continue;
-	phPhi_.denominator->Fill(p.phi());
-	phEta_.denominator->Fill(p.eta());
-	phPt_.denominator ->Fill(p.pt());
-      }
+        if ( !photonSelection_( p ) ) continue;
+        photons.push_back(p);
+        // if(!(photons.empty()))
+            
+         phPhi_.denominator->Fill(photons[0].phi()); 
+         phEta_.denominator->Fill(photons[0].eta());
+         phPt_.denominator ->Fill(photons[0].pt());
 
-    } 
+         }
+        }
+
     //
     /////////
     // filling numerator hists
@@ -839,6 +920,17 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 	  break; 
 	case 7: // the hists for photon monitoring will be filled on 515 line
 	  tnp_=false;
+	  mu1Phi_.numerator->Fill(m.phi(),PrescaleWeight);
+	  mu1Eta_.numerator->Fill(m.eta(),PrescaleWeight);
+	  mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
+	  mu2Phi_.numerator->Fill(m1.phi(),PrescaleWeight);
+	  mu2Eta_.numerator->Fill(m1.eta(),PrescaleWeight);
+	  mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
+	  DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt(),PrescaleWeight );
+	  DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta() ,PrescaleWeight);
+	  DiMuPhi_.numerator ->Fill((m1.p4()+m.p4()).Phi(),PrescaleWeight);
+	  DiMudR_.numerator ->Fill(reco::deltaR(m,m1),PrescaleWeight);
+	  DiMuMass_.numerator ->Fill(DiMuMass,PrescaleWeight);
 	  break;
 	case 8: // vtx monitoring, filling probability, DS, DCA, cos of pointing angle to the PV, eta, pT of dimuon
 	  if ((Jpsi_) && (!Upsilon_)) {
@@ -970,11 +1062,16 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
       const std::string &hltpath = hltpaths_num[0];
       for (auto const & p : *phHandle) {
 	if (false && !matchToTrigger(hltpath,p, handleTriggerEvent)) continue;
-	phPhi_.numerator->Fill(p.phi(),PrescaleWeight);
-	phEta_.numerator->Fill(p.eta(),PrescaleWeight);
-	phPt_.numerator ->Fill(p.pt(),PrescaleWeight);
+
+        if ( !photonSelection_( p ) ) continue;
+        photons.push_back(p);
+        //if(!(photons.empty()))
+
+         phPhi_.numerator->Fill(photons[0].phi(),PrescaleWeight); 
+         phEta_.numerator->Fill(photons[0].eta(),PrescaleWeight);
+         phPt_.numerator ->Fill(photons[0].pt(),PrescaleWeight);
       }
-    }
+     }
   }
 }
 
@@ -1008,6 +1105,8 @@ void BPHMonitor::fillDescriptions(edm::ConfigurationDescriptions & descriptions)
   desc.add<std::string>("muoSelection_ref", "isPFMuon & isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits> 0");
   desc.add<std::string>("muoSelection_tag",  "isGlobalMuon && isPFMuon && isTrackerMuon && abs(eta) < 2.4 && innerTrack.hitPattern.numberOfValidPixelHits > 0 && innerTrack.hitPattern.trackerLayersWithMeasurement > 5 && globalTrack.hitPattern.numberOfValidMuonHits > 0 && globalTrack.normalizedChi2 < 10"); // tight selection for tag muon
   desc.add<std::string>("muoSelection_probe", "isPFMuon & isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits> 0");
+  desc.add<std::string>("photonSelection", "pt > 15 && eta<1.4442 && hadTowOverEm<0.0597 && full5x5_sigmaIetaIeta()<0.01031 && chargedHadronIso<1.295");//
+  desc.add<unsigned int>("nphotons", 0);
   desc.add<std::string>("trSelection_ref", "");
   desc.add<std::string>("DMSelection_ref", "Pt>4 & abs(eta)");
 
