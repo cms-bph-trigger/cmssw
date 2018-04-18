@@ -405,28 +405,86 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
   const std::string & hltpath1 = getTriggerName(hltpaths_num[0]);
 
   if (den_genTriggerEventFlag_->on() &&  den_genTriggerEventFlag_->accept( iEvent, iSetup) && num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) ) {
-    int PrescaleHLT = 1;
-    int PrescaleHLT_den = 1;
-    int PrescaleL1 = 1;
+    double PrescaleHLT_num = 1;
+    double PrescaleHLT_den = 1;
+    double Prescale_den = 1;
+    double Prescale_num = 1;
 
     // when the L1 logic for numerator and denominator are prescaled, the L1 prescale contributes to the weight
-    if ( (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(0).second > 1 && (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.at(0).first != (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(0).first ) {
-      // global prescale combines all the seeds composing the L1 logic
-      for (size_t iSeed=0; iSeed < (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.size(); ++iSeed) {
-	PrescaleL1 *= 1 - ( 1.0 / (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(0).second );
-      }
-      PrescaleL1 = 1.0 / ( 1 - PrescaleL1 );
-    }
+///Prescale strategy proposed by Alessio
+///////////////////////////////////////////////  
+//    if ( (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(0).second > 1 && (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.at(0).first != (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(0).first ) {
+//      // global prescale combines all the seeds composing the L1 logic
+//      for (size_t iSeed=0; iSeed < (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.size(); ++iSeed) {
+//	PrescaleL1 *= 1 - ( 1.0 / (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(0).second );
+//      }
+//      PrescaleL1 = 1.0 / ( 1 - PrescaleL1 );
+//    }
+//
+//    PrescaleHLT = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).second;
+//    PrescaleHLT_den = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).second;
+//
+//    // when HLT PS are equal or exact multiples, they "synchronize" the acceptance and the relative prescale of the numerator is reduced
+//    if ( PrescaleHLT_den % PrescaleHLT == 0 ) PrescaleHLT = 1;
+//    else if ( PrescaleHLT % PrescaleHLT_den == 0 ) PrescaleHLT = PrescaleHLT / PrescaleHLT_den;
+//
+//    PrescaleWeight = PrescaleL1*PrescaleHLT;
+//////////////////////////////////////////////////
 
-    PrescaleHLT = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).second;
+//Trying new strategy
+ 
     PrescaleHLT_den = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).second;
+    PrescaleHLT_num = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).second;
 
-    // when HLT PS are equal or exact multiples, they "synchronize" the acceptance and the relative prescale of the numerator is reduced
-    if ( PrescaleHLT_den % PrescaleHLT == 0 ) PrescaleHLT = 1;
-    else if ( PrescaleHLT % PrescaleHLT_den == 0 ) PrescaleHLT = PrescaleHLT / PrescaleHLT_den;
+    Prescale_den=PrescaleHLT_den;
+    Prescale_num=PrescaleHLT_num;
 
-    PrescaleWeight = PrescaleL1*PrescaleHLT;
+    bool flag=true;
 
+//Denominator
+    if ( (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.size() > 0 )    
+    {
+      Prescale_den =1;
+      flag=true;
+      std::cout<<"number of den seeds"<<(hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.size()<<std::endl;
+      for (size_t iSeed=0; iSeed < (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.size(); ++iSeed) 
+      {
+        int l1 = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.at(iSeed).second;
+        if (l1<1) continue;
+        if (l1>1) flag = false;
+        std::cout<<"l1 = "<<l1<<"; at i ="<< iSeed<<std::endl;
+        if (PrescaleHLT_den==1 && l1==1) Prescale_den *=1;
+        else Prescale_den *= 1 - (1.0/(PrescaleHLT_den*l1));
+      }
+     if (Prescale_den!=1 && Prescale_den!=0) Prescale_den = 1.0 / (1 - Prescale_den);
+     if (flag) Prescale_den=PrescaleHLT_den;
+    }
+///Numerator
+    if ( (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.size() > 0 )   
+    {
+      Prescale_num =1;
+      flag=true;
+      std::cout<<"number of num seeds"<<(hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.size()<<std::endl;
+      for (size_t iSeed=0; iSeed < (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.size(); ++iSeed) 
+      {
+        
+        int l1 = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(iSeed).second;
+        if (l1<1) continue; 
+        if (l1>1) flag = false;
+        std::cout<<"l1 = "<<l1<<"; at i = "<<iSeed<<std::endl;
+        if (PrescaleHLT_num==1 && l1==1) Prescale_num *=1;
+        else Prescale_num *= 1 - (1.0/(PrescaleHLT_num*l1));
+      }
+      if (Prescale_num!=1 && Prescale_num!=0)Prescale_num = 1.0 / (1 - Prescale_num);
+      if (flag) Prescale_num=PrescaleHLT_num;
+    }
+    
+    PrescaleWeight = Prescale_num/Prescale_den;
+    std::cout<<"HLT den prescale = "<<PrescaleHLT_den<<std::endl;     
+    std::cout<<"HLT num prescale = "<<PrescaleHLT_num<<std::endl;     
+    std::cout<<"total num prescale = "<<Prescale_num<<std::endl;
+    std::cout<<"total den prescale = "<<Prescale_den<<std::endl;
+    std::cout<<"total prescale = "<<PrescaleWeight<<std::endl;
     // std::cout<<"total L1 prescale = "<<PrescaleL1<<std::endl;
     // std::cout<<"total HLT prescale = "<<PrescaleHLT<<std::endl;
     // std::cout<<"total prescale = "<<PrescaleWeight<<std::endl;

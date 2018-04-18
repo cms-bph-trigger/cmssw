@@ -117,4 +117,4 @@ hltBPHmonitoring.denGenericTriggerEventPSet.hltPaths  = cms.vstring( "HLT_Mu7p5_
 hltBPHmonitoring.denGenericTriggerEventPSet.andOrDcs      = cms.bool( False )
 hltBPHmonitoring.denGenericTriggerEventPSet.errorReplyDcs = cms.bool( True )
 hltBPHmonitoring.denGenericTriggerEventPSet.verbosityLevel = cms.uint32(0)
-hltBPHmonitoring.verbosityLevel = cms.uint32(1338)
+hltBPHmonitoring.verbosityLevel = cms.uint32(0)
