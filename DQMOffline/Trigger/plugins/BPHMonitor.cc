@@ -399,6 +399,17 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
     if ( vtxHandle->at(i).isValid() && !vtxHandle->at(i).isFake() ) {pileUp++;}
   }
 
+//filling common hists with additional info
+  if (den_genTriggerEventFlag_->on() &&  den_genTriggerEventFlag_->accept( iEvent, iSetup)) 
+  {
+    
+
+    if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+    {
+
+
+    }
+  }
   double PrescaleWeight =1;
   // int PrescaleSet = hltPrescale_->prescaleSet(iEvent, iSetup);
   const std::string & hltpath = getTriggerName(hltpaths_den[0]);
@@ -443,6 +454,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 
 //Denominator
     if ( (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.size() > 0 )    
+//    if (false && (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.size() > 0 )    
     {
       Prescale_den =1;
       flag=true;
@@ -452,15 +464,18 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
         int l1 = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.at(iSeed).second;
         if (l1<1) continue;
         if (l1>1) flag = false;
-        std::cout<<"l1 = "<<l1<<"; at i ="<< iSeed<<std::endl;
+        std::cout<<"l1 = "<<l1<<"; at i ="<< iSeed<<(hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.at(iSeed).first<<std::endl;
         if (PrescaleHLT_den==1 && l1==1) Prescale_den *=1;
+//        if ( l1==1) Prescale_den *=1;
         else Prescale_den *= 1 - (1.0/(PrescaleHLT_den*l1));
+//        else Prescale_den *= 1 - (1.0/(l1));
       }
      if (Prescale_den!=1 && Prescale_den!=0) Prescale_den = 1.0 / (1 - Prescale_den);
      if (flag) Prescale_den=PrescaleHLT_den;
     }
 ///Numerator
     if ( (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.size() > 0 )   
+//    if ( false && (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.size() > 0 )   
     {
       Prescale_num =1;
       flag=true;
@@ -471,15 +486,21 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
         int l1 = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(iSeed).second;
         if (l1<1) continue; 
         if (l1>1) flag = false;
-        std::cout<<"l1 = "<<l1<<"; at i = "<<iSeed<<std::endl;
+        std::cout<<"l1 = "<<l1<<"; at i = "<<iSeed<<(hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(iSeed).first<<std::endl;
         if (PrescaleHLT_num==1 && l1==1) Prescale_num *=1;
+//        if (l1==1) Prescale_num *=1;
         else Prescale_num *= 1 - (1.0/(PrescaleHLT_num*l1));
+//        else Prescale_num *= 1 - (1.0/(l1));
       }
       if (Prescale_num!=1 && Prescale_num!=0)Prescale_num = 1.0 / (1 - Prescale_num);
       if (flag) Prescale_num=PrescaleHLT_num;
+//      if (flag) Prescale_num=1;
     }
     
-    PrescaleWeight = Prescale_num/Prescale_den;
+//    PrescaleWeight = 1;//v6
+//    PrescaleWeight = (PrescaleHLT_num*Prescale_num)/(PrescaleHLT_den*Prescale_den);//v5
+    PrescaleWeight = Prescale_num/Prescale_den;//v4
+//    PrescaleWeight = PrescaleHLT_num/PrescaleHLT_den;//v3
     std::cout<<"HLT den prescale = "<<PrescaleHLT_den<<std::endl;     
     std::cout<<"HLT num prescale = "<<PrescaleHLT_num<<std::endl;     
     std::cout<<"total num prescale = "<<Prescale_num<<std::endl;
@@ -592,30 +613,19 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           DiMuEta_.denominator ->Fill((m1.p4()+m.p4()).Eta() );
           DiMuPhi_.denominator ->Fill((m1.p4()+m.p4()).Phi());
           if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
-	    {
-	      //const std::string const std::string & hltpath1 hltpath1 = hltpaths_num[0];
-	      //int PrescleHLT=1, PrescleHLT1=1;
-	      //int PrescleL1 = 1;
-	      //PrescleHLT =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
-	      //std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
-	      //PrescleL1 = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(0).second;//
-	      //PrescleHLT= (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
-	      //            
-	      //std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
-	      ///PrescaleWeight = PrescleL1 * PrescleHLT;
-
-	      if( !matchToTrigger(hltpath1,m1))continue;
-	      if( !matchToTrigger(hltpath1,m))continue;
-	      mu1Phi_.numerator->Fill(m.phi(),PrescaleWeight);
-	      mu1Eta_.numerator->Fill(m.eta(),PrescaleWeight);
-	      mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
-	      mu2Phi_.numerator->Fill(m1.phi(),PrescaleWeight);
-	      mu2Eta_.numerator->Fill(m1.eta(),PrescaleWeight);
-	      mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
-	      DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt() ,PrescaleWeight);
-	      DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta() ,PrescaleWeight);
-	      DiMuPhi_.numerator ->Fill((m1.p4()+m.p4()).Phi(),PrescaleWeight);
-	    }
+    	    {
+    	      if( !matchToTrigger(hltpath1,m1))continue;
+    	      if( !matchToTrigger(hltpath1,m))continue;
+    	      mu1Phi_.numerator->Fill(m.phi(),PrescaleWeight);
+    	      mu1Eta_.numerator->Fill(m.eta(),PrescaleWeight);
+    	      mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
+    	      mu2Phi_.numerator->Fill(m1.phi(),PrescaleWeight);
+    	      mu2Eta_.numerator->Fill(m1.eta(),PrescaleWeight);
+    	      mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
+    	      DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt() ,PrescaleWeight);
+    	      DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta() ,PrescaleWeight);
+    	      DiMuPhi_.numerator ->Fill((m1.p4()+m.p4()).Phi(),PrescaleWeight);
+    	    }
           break;
 
         case 3:
@@ -631,44 +641,26 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           mu2Eta_.denominator->Fill(m1.eta());
           mu2Pt_.denominator ->Fill(m1.pt());
           if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
-	    {
-	      //std::cout<<"inside num"<<enum_<<std::endl;
-	      //const std::string const std::string & hltpath1 hltpath1 = hltpaths_num[0];
-	      //int PrescleHLT=1, PrescleHLT1=1;
-	      //int PrescleL1 = 1;
-	      //PrescleHLT =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
-	      //PrescleL1 = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(0).second;//
-	      //PrescleHLT= (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
-	      //std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
-	      ///PrescaleWeight = PrescleL1 * PrescleHLT;
-	      if( !matchToTrigger(hltpath1,m1))continue;
-	      if( !matchToTrigger(hltpath1,m))continue;
-	      mu1Eta_.numerator->Fill(m.eta(),PrescaleWeight);
-	      mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
-	      mu2Eta_.numerator->Fill(m1.eta(),PrescaleWeight);
-	      mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
-	    }
+    	    {
+    	      if( !matchToTrigger(hltpath1,m1))continue;
+    	      if( !matchToTrigger(hltpath1,m))continue;
+    	      mu1Eta_.numerator->Fill(m.eta(),PrescaleWeight);
+    	      mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
+    	      mu2Eta_.numerator->Fill(m1.eta(),PrescaleWeight);
+    	      mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
+    	    }
           break; 
 
         case 4:
           if (dimuonCL<minprob) continue;
           DiMuMass_.denominator ->Fill(DiMuMass);
           if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) && muoSelection_ref(m1))
-	    {
-	      //std::cout<<"inside num"<<enum_<<std::endl;
-	      //const std::string const std::string & hltpath1 hltpath1 = hltpaths_num[0];
-	      //int PrescleHLT=1, PrescleHLT1=1;
-	      //int PrescleL1 = 1;
-	      //PrescleHLT =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
-	      //PrescleL1 = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(0).second;//
-	      //PrescleHLT= (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
-	      //std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
-	      ///PrescaleWeight = PrescleL1 * PrescleHLT;
-	      if (seagull_ && ((m.charge()* deltaPhi(m.phi(), m1.phi())) > 0.) ) continue;
-	      if( !matchToTrigger(hltpath1,m1))continue;          
-	      if( !matchToTrigger(hltpath1,m))continue;          
-	      DiMuMass_.numerator ->Fill(DiMuMass);      
-	    }
+    	    {
+    	      if (seagull_ && ((m.charge()* deltaPhi(m.phi(), m1.phi())) > 0.) ) continue;
+    	      if( !matchToTrigger(hltpath1,m1))continue;          
+    	      if( !matchToTrigger(hltpath1,m))continue;          
+    	      DiMuMass_.numerator ->Fill(DiMuMass);      
+    	    }
           if ((Jpsi_) && (!Upsilon_)){
             if (DiMuMass> maxmassJpsi || DiMuMass< minmassJpsi) continue;
           }
@@ -686,30 +678,21 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           DiMuPhi_.denominator ->Fill((m1.p4()+m.p4()).Phi());
           DiMudR_.denominator ->Fill(reco::deltaR(m,m1));
           if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
-	    {
-	      //std::cout<<"inside num"<<enum_<<std::endl;
-	      //const std::string const std::string & hltpath1 hltpath1 = hltpaths_num[0];
-	      //int PrescleHLT=1, PrescleHLT1=1;
-	      //int PrescleL1 = 1;
-	      //PrescleHLT =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
-	      //PrescleL1 = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(0).second;//
-	      //PrescleHLT= (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
-	      //std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
-	      ///PrescaleWeight = PrescleL1 * PrescleHLT;
-	      if (seagull_ && ((m.charge()* deltaPhi(m.phi(), m1.phi())) > 0.) ) continue;
-	      if( !matchToTrigger(hltpath1,m1))continue;
-	      if( !matchToTrigger(hltpath1,m))continue;
-	      mu1Phi_.numerator->Fill(m.phi(),PrescaleWeight);
-	      mu1Eta_.numerator->Fill(m.eta(),PrescaleWeight);
-	      mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
-	      mu2Phi_.numerator->Fill(m1.phi(),PrescaleWeight);
-	      mu2Eta_.numerator->Fill(m1.eta(),PrescaleWeight);
-	      mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
-	      DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt() ,PrescaleWeight);
-	      DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta() ,PrescaleWeight);
-	      DiMuPhi_.numerator ->Fill((m1.p4()+m.p4()).Phi(),PrescaleWeight);
-	      DiMudR_.numerator ->Fill(reco::deltaR(m,m1),PrescaleWeight);
-	    }
+    	    {
+    	      if (seagull_ && ((m.charge()* deltaPhi(m.phi(), m1.phi())) > 0.) ) continue;
+    	      if( !matchToTrigger(hltpath1,m1))continue;
+    	      if( !matchToTrigger(hltpath1,m))continue;
+    	      mu1Phi_.numerator->Fill(m.phi(),PrescaleWeight);
+    	      mu1Eta_.numerator->Fill(m.eta(),PrescaleWeight);
+    	      mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
+    	      mu2Phi_.numerator->Fill(m1.phi(),PrescaleWeight);
+    	      mu2Eta_.numerator->Fill(m1.eta(),PrescaleWeight);
+    	      mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
+    	      DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt() ,PrescaleWeight);
+    	      DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta() ,PrescaleWeight);
+    	      DiMuPhi_.numerator ->Fill((m1.p4()+m.p4()).Phi(),PrescaleWeight);
+    	      DiMudR_.numerator ->Fill(reco::deltaR(m,m1),PrescaleWeight);
+    	    }
           break;
 
         case 5:
@@ -732,30 +715,21 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           DiMuPhi_.denominator ->Fill((m1.p4()+m.p4()).Phi());
           DiMudR_.denominator ->Fill(reco::deltaR(m,m1));
           if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
-	    {
-	      //std::cout<<"inside num"<<enum_<<std::endl;
-	      //const std::string const std::string & hltpath1 hltpath1 = hltpaths_num[0];
-	      //int PrescleHLT=1, PrescleHLT1=1;
-	      //int PrescleL1 = 1;
-	      //PrescleHLT =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
-	      //PrescleL1 = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(0).second;//
-	      //PrescleHLT= (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
-	      //std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
-	      ///PrescaleWeight = PrescleL1 * PrescleHLT;
-	      if (seagull_ && ((m.charge()* deltaPhi(m.phi(), m1.phi())) > 0.) ) continue;
-	      if( !matchToTrigger(hltpath1,m1))continue;
-	      if( !matchToTrigger(hltpath1,m))continue;
-	      mu1Phi_.numerator->Fill(m.phi(),PrescaleWeight);
-	      mu1Eta_.numerator->Fill(m.eta(),PrescaleWeight);
-	      mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
-	      mu2Phi_.numerator->Fill(m1.phi(),PrescaleWeight);
-	      mu2Eta_.numerator->Fill(m1.eta(),PrescaleWeight);
-	      mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
-	      DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt() ,PrescaleWeight);
-	      DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta() ,PrescaleWeight);
-	      DiMuPhi_.numerator ->Fill((m1.p4()+m.p4()).Phi(),PrescaleWeight);
-	      DiMudR_.numerator ->Fill(reco::deltaR(m,m1),PrescaleWeight);
-	    }      
+    	    {
+    	      if (seagull_ && ((m.charge()* deltaPhi(m.phi(), m1.phi())) > 0.) ) continue;
+    	      if( !matchToTrigger(hltpath1,m1))continue;
+    	      if( !matchToTrigger(hltpath1,m))continue;
+    	      mu1Phi_.numerator->Fill(m.phi(),PrescaleWeight);
+    	      mu1Eta_.numerator->Fill(m.eta(),PrescaleWeight);
+    	      mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
+    	      mu2Phi_.numerator->Fill(m1.phi(),PrescaleWeight);
+    	      mu2Eta_.numerator->Fill(m1.eta(),PrescaleWeight);
+    	      mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
+    	      DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt() ,PrescaleWeight);
+    	      DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta() ,PrescaleWeight);
+    	      DiMuPhi_.numerator ->Fill((m1.p4()+m.p4()).Phi(),PrescaleWeight);
+    	      DiMudR_.numerator ->Fill(reco::deltaR(m,m1),PrescaleWeight);
+    	    }      
 
           break;
 
@@ -780,122 +754,82 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
             mu3Eta_.denominator->Fill(m2.eta());
             mu3Pt_.denominator ->Fill(m2.pt());
             if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
-	      {
-		//std::cout<<"inside num"<<enum_<<std::endl;
-		//const std::string const std::string & hltpath1 hltpath1 = hltpaths_num[0];
-		//int PrescleHLT=1, PrescleHLT1=1;
-		//int PrescleL1 = 1;
-		//PrescleHLT =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
-		//PrescleL1 = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(0).second;//
-		//PrescleHLT= (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
-		//std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
-		///PrescaleWeight = PrescleL1 * PrescleHLT;
-		if( !matchToTrigger(hltpath1,m1))continue;
-		if( !matchToTrigger(hltpath1,m))continue;
-		if( !matchToTrigger(hltpath1,m2))continue;
-		mu1Phi_.numerator->Fill(m.phi(),PrescaleWeight);
-		mu1Eta_.numerator->Fill(m.eta(),PrescaleWeight);
-		mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
-		mu2Phi_.numerator->Fill(m1.phi(),PrescaleWeight);
-		mu2Eta_.numerator->Fill(m1.eta(),PrescaleWeight);
-		mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
-		mu3Phi_.numerator->Fill(m2.phi(),PrescaleWeight);
-		mu3Eta_.numerator->Fill(m2.eta(),PrescaleWeight);
-		mu3Pt_.numerator ->Fill(m2.pt(),PrescaleWeight);
-
-	      }
+    	      {
+          		if( !matchToTrigger(hltpath1,m1))continue;
+          		if( !matchToTrigger(hltpath1,m))continue;
+          		if( !matchToTrigger(hltpath1,m2))continue;
+          		mu1Phi_.numerator->Fill(m.phi(),PrescaleWeight);
+          		mu1Eta_.numerator->Fill(m.eta(),PrescaleWeight);
+          		mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
+          		mu2Phi_.numerator->Fill(m1.phi(),PrescaleWeight);
+          		mu2Eta_.numerator->Fill(m1.eta(),PrescaleWeight);
+          		mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
+          		mu3Phi_.numerator->Fill(m2.phi(),PrescaleWeight);
+          		mu3Eta_.numerator->Fill(m2.eta(),PrescaleWeight);
+          		mu3Pt_.numerator ->Fill(m2.pt(),PrescaleWeight);
+    
+    	      }
           }      
           break;    
   
         case 7:// the hists for photon monitoring will be filled on 515 line
           if(phHandle->size()>0)
-	    { 
-	      for (auto const & p : *phHandle)
-		{
-		  if( !matchToTrigger(hltpath,p))continue;
-		  phPhi_.denominator->Fill(p.phi());
-		  phEta_.denominator->Fill(p.eta());
-		  phPt_.denominator ->Fill(p.pt());
-		  if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
-		    {
-		      //std::cout<<"inside num"<<enum_<<std::endl;
-		      //const std::string const std::string & hltpath1 hltpath1 = hltpaths_num[0];
-		      //int PrescleHLT=1, PrescleHLT1=1;
-		      //int PrescleL1 = 1;
-		      //PrescleHLT =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
-		      //PrescleL1 = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(0).second;//
-		      //PrescleHLT= (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
-		      //std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
-		      ///PrescaleWeight = PrescleL1 * PrescleHLT;
-
-		      if( !matchToTrigger(hltpath1,p))continue;
-		      if( !matchToTrigger(hltpath1,m))continue;
-		      if( !matchToTrigger(hltpath1,m1))continue;
-		      phPhi_.numerator->Fill(p.phi(),PrescaleWeight);
-		      phEta_.numerator->Fill(p.eta(),PrescaleWeight);
-		      phPt_.numerator ->Fill(p.pt(),PrescaleWeight);
-
-		    }
-		}
-	    } 
+    	    { 
+    	      for (auto const & p : *phHandle)
+        		{
+        		  if( !matchToTrigger(hltpath,p))continue;
+        		  phPhi_.denominator->Fill(p.phi());
+        		  phEta_.denominator->Fill(p.eta());
+        		  phPt_.denominator ->Fill(p.pt());
+        		  if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+        		    {
+        		      if( !matchToTrigger(hltpath1,p))continue;
+        		      if( !matchToTrigger(hltpath1,m))continue;
+        		      if( !matchToTrigger(hltpath1,m1))continue;
+        		      phPhi_.numerator->Fill(p.phi(),PrescaleWeight);
+        		      phEta_.numerator->Fill(p.eta(),PrescaleWeight);
+        		      phPt_.numerator ->Fill(p.pt(),PrescaleWeight);
+        
+        		    }
+        		}
+    	    } 
           break;
           
         case 8://vtx monitoring, filling probability, DS, DCA, cos of pointing angle to the PV, eta, pT of dimuon
-          if ((Jpsi_) && (!Upsilon_)){
-            if (DiMuMass> maxmassJpsi || DiMuMass< minmassJpsi) continue;
-          }
-  
-	  if ((!Jpsi_) && (Upsilon_)) {
-	    if (DiMuMass> maxmassUpsilon || DiMuMass< minmassUpsilon) continue;
-	  }
-  
-          DiMuProb_.denominator ->Fill( dimuonCL);
-
-          if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
-	    {
-	      //std::cout<<"inside num"<<enum_<<std::endl;
-	      //const std::string const std::string & hltpath1 hltpath1 = hltpaths_num[0];
-	      //int PrescleHLT=1, PrescleHLT1=1;
-	      //int PrescleL1 = 1;
-
-	      //PrescleHLT =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
-	      //PrescleL1 = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(0).second;//
-	      //PrescleHLT= (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
-	      //std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
-	      ///PrescaleWeight = PrescleL1 * PrescleHLT;
- 
-	      if( !matchToTrigger(hltpath1,m1))continue;
-	      if( !matchToTrigger(hltpath1,m))continue;
-	      DiMuProb_.numerator ->Fill( dimuonCL,PrescaleWeight);          
-	    }
-          if (dimuonCL<minprob) continue;
-          DiMuDS_.denominator ->Fill( displacementFromBeamspotJpsi.perp()/sqrt(jerr.rerr(displacementFromBeamspotJpsi)));
-          DiMuPVcos_.denominator ->Fill(jpsi_cos );
-          DiMuPt_.denominator ->Fill((m1.p4()+m.p4()).Pt() );
-          DiMuEta_.denominator ->Fill((m1.p4()+m.p4()).Eta() );
-          DiMuDCA_.denominator ->Fill( cApp.distance());
-          if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
-	    {
-	      //std::cout<<"inside num"<<enum_<<std::endl;
-	      //const std::string const std::string & hltpath1 hltpath1 = hltpaths_num[0];
-	      //int PrescleHLT=1, PrescleHLT1=1;
-	      //int PrescleL1 = 1;
-	      //PrescleHLT =  hltPrescale_->prescaleValue(iEvent, iSetup, hltpath1);//working !!!
-	      //PrescleL1 = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(0).second;//
-	      //PrescleHLT= (hltPrescale_->prescaleValues(iEvent, iSetup, hltpath1)).second;
-	      //std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
-	      ///PrescaleWeight = PrescleL1 * PrescleHLT;
-
-	      if( !matchToTrigger(hltpath1,m1))continue;
-	      if( !matchToTrigger(hltpath1,m))continue;
-	      DiMuDS_.numerator ->Fill( displacementFromBeamspotJpsi.perp()/sqrt(jerr.rerr(displacementFromBeamspotJpsi)),PrescaleWeight);
-	      DiMuPVcos_.numerator ->Fill(jpsi_cos ,PrescaleWeight);
-	      DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt() ,PrescaleWeight);
-	      DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta() ,PrescaleWeight);
-	      DiMuDCA_.numerator ->Fill( cApp.distance(),PrescaleWeight);
-
-	    }          
-          break;
+              if ((Jpsi_) && (!Upsilon_)){
+                if (DiMuMass> maxmassJpsi || DiMuMass< minmassJpsi) continue;
+              }
+      
+        	  if ((!Jpsi_) && (Upsilon_)) {
+        	    if (DiMuMass> maxmassUpsilon || DiMuMass< minmassUpsilon) continue;
+        	  }
+      
+              DiMuProb_.denominator ->Fill( dimuonCL);
+    
+              if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+        	    {
+        	      if( !matchToTrigger(hltpath1,m1))continue;
+        	      if( !matchToTrigger(hltpath1,m))continue;
+        	      DiMuProb_.numerator ->Fill( dimuonCL,PrescaleWeight);          
+        	    }
+              if (dimuonCL<minprob) continue;
+              DiMuDS_.denominator ->Fill( displacementFromBeamspotJpsi.perp()/sqrt(jerr.rerr(displacementFromBeamspotJpsi)));
+              DiMuPVcos_.denominator ->Fill(jpsi_cos );
+              DiMuPt_.denominator ->Fill((m1.p4()+m.p4()).Pt() );
+              DiMuEta_.denominator ->Fill((m1.p4()+m.p4()).Eta() );
+              DiMuDCA_.denominator ->Fill( cApp.distance());
+              if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+        	    {
+        	      if( !matchToTrigger(hltpath1,m1))continue;
+        	      if( !matchToTrigger(hltpath1,m))continue;
+        	      DiMuDS_.numerator ->Fill( displacementFromBeamspotJpsi.perp()/sqrt(jerr.rerr(displacementFromBeamspotJpsi)),PrescaleWeight);
+        	      DiMuPVcos_.numerator ->Fill(jpsi_cos ,PrescaleWeight);
+        	      DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt() ,PrescaleWeight);
+        	      DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta() ,PrescaleWeight);
+        	      DiMuDCA_.numerator ->Fill( cApp.distance(),PrescaleWeight);
+        
+        	    }          
+              break;
 
       	case 9:
           if (dimuonCL<minprob) continue;
