@@ -97,6 +97,8 @@ protected:
   template <typename T>
 //  bool matchToTrigger(const std::string  &theTriggerName , T t, std::string filterName, std::vector<unsigned int> filterID);
   bool matchToTrigger(const std::string  &theTriggerName , T t);
+
+  double Prescale(const std::string  num, const std::string  den, edm::Event const& iEvent, edm::EventSetup const& iSetup,  HLTPrescaleProvider* hltPrescale_);
   //bool matchToTrigger(std::string theTriggerName,T t, edm::Handle<trigger::TriggerEventWithRefs> handleTriggerEvent);
 
 

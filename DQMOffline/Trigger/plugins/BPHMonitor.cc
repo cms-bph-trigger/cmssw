@@ -224,7 +224,71 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
 				edm::Run const        & iRun,
 				edm::EventSetup const & iSetup) 
 {  
-  
+////
+//// muPhi_.numerator->setEfficiencyFlag();
+////  muPhi_.denominator->setEfficiencyFlag();
+////  muEta_.numerator->setEfficiencyFlag();
+////  muEta_.denominator->setEfficiencyFlag();
+////  muPt_.numerator->setEfficiencyFlag();
+////  muPt_.denominator->setEfficiencyFlag();
+////  mud0_.numerator->setEfficiencyFlag();
+////  mud0_.denominator->setEfficiencyFlag();
+////  muz0_.numerator->setEfficiencyFlag();
+////  muz0_.denominator->setEfficiencyFlag();
+//
+////  mu1Phi_.numerator->setEfficiencyFlag();
+////  mu1Phi_.denominator->setEfficiencyFlag();
+////  mu1Eta_.numerator->setEfficiencyFlag();
+////  mu1Eta_.denominator->setEfficiencyFlag();
+////  mu1Pt_.numerator->setEfficiencyFlag();
+////  mu1Pt_.denominator->setEfficiencyFlag();
+//
+////  mu2Phi_.numerator->setEfficiencyFlag();
+////  mu2Phi_.denominator->setEfficiencyFlag();
+////  mu2Eta_.numerator->setEfficiencyFlag();
+////  mu2Eta_.denominator->setEfficiencyFlag();
+////  mu2Pt_.numerator->setEfficiencyFlag();
+////  mu2Pt_.denominator->setEfficiencyFlag();
+//
+////  mu3Phi_.numerator->setEfficiencyFlag();
+////  mu3Phi_.denominator->setEfficiencyFlag();
+////  mu3Eta_.numerator->setEfficiencyFlag();
+////  mu3Eta_.denominator->setEfficiencyFlag();
+////  mu3Pt_.numerator->setEfficiencyFlag();
+////  mu3Pt_.denominator->setEfficiencyFlag();
+//
+////  phPhi_.numerator->setEfficiencyFlag();
+////  phPhi_.denominator->setEfficiencyFlag();
+////  phEta_.numerator->setEfficiencyFlag();
+////  phEta_.denominator->setEfficiencyFlag();
+////  phPt_.numerator->setEfficiencyFlag();
+////  phPt_.denominator->setEfficiencyFlag();
+//
+//
+////  DiMuPhi_.numerator->setEfficiencyFlag();
+////  DiMuPhi_.denominator->setEfficiencyFlag();
+////  DiMuEta_.numerator->setEfficiencyFlag();
+////  DiMuEta_.denominator->setEfficiencyFlag();
+////  DiMuPt_.numerator->setEfficiencyFlag();
+////  DiMuPt_.denominator->setEfficiencyFlag();
+////  DiMuPVcos_.numerator->setEfficiencyFlag();
+////  DiMuPVcos_.denominator->setEfficiencyFlag();
+////  DiMuProb_.numerator->setEfficiencyFlag();
+////  DiMuProb_.denominator->setEfficiencyFlag();
+////  DiMuDS_.numerator->setEfficiencyFlag();
+////  DiMuDS_.denominator->setEfficiencyFlag();
+////  DiMuDCA_.numerator->setEfficiencyFlag();
+////  DiMuDCA_.denominator->setEfficiencyFlag();
+////  DiMuMass_.numerator->setEfficiencyFlag();
+////  DiMuMass_.denominator->setEfficiencyFlag();
+////  DiMudR_.numerator->setEfficiencyFlag();
+////  DiMudR_.denominator->setEfficiencyFlag();
+
+
+///  
+
+
+
   std::string histname, histtitle, istnp, trMuPh;
   bool Ph_ = false; if (enum_ == 7) Ph_ = true;
   if (tnp_) istnp = "Tag_and_Probe/"; else istnp = "";
@@ -244,6 +308,13 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
     histname = trMuPh+"Eta"; histtitle = trMuPh+"_Eta";
     bookME(ibooker,muEta_,histname,histtitle, eta_binning_);
     setMETitle(muEta_,trMuPh+"_#eta","events / 0.2");
+// muPhi_.numerator->setEfficiencyFlag();
+//  muPhi_.denominator->setEfficiencyFlag();
+//  muEta_.numerator->setEfficiencyFlag();
+//  muEta_.denominator->setEfficiencyFlag();
+//  muPt_.numerator->setEfficiencyFlag();
+//  muPt_.denominator->setEfficiencyFlag();
+
   }
   else {
     histname = trMuPh+"1Pt"; histtitle = trMuPh+"1_P_{t}";
@@ -269,6 +340,19 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
     histname = trMuPh+"2Eta"; histtitle = trMuPh+"2_Eta";
     bookME(ibooker,mu2Eta_,histname,histtitle, eta_binning_);
     setMETitle(mu2Eta_,trMuPh+"_#eta","events / 0.2");
+//  mu1Phi_.numerator->setEfficiencyFlag();
+//  mu1Phi_.denominator->setEfficiencyFlag();
+//  mu1Eta_.numerator->setEfficiencyFlag();
+//  mu1Eta_.denominator->setEfficiencyFlag();
+//  mu1Pt_.numerator->setEfficiencyFlag();
+//  mu1Pt_.denominator->setEfficiencyFlag();
+
+//  mu2Phi_.numerator->setEfficiencyFlag();
+//  mu2Phi_.denominator->setEfficiencyFlag();
+//  mu2Eta_.numerator->setEfficiencyFlag();
+//  mu2Eta_.denominator->setEfficiencyFlag();
+//  mu2Pt_.numerator->setEfficiencyFlag();
+//  mu2Pt_.denominator->setEfficiencyFlag();
 
     if (enum_ == 6) {
       histname = trMuPh+"3Eta"; histtitle = trMuPh+"3Eta";
@@ -282,6 +366,13 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
       histname = trMuPh+"3Phi"; histtitle = trMuPh+"3Phi";
       bookME(ibooker,mu3Phi_,histname,histtitle, phi_binning_);
       setMETitle(mu3Phi_,trMuPh+"3_#phi","events / 0.1 rad");
+//  mu3Phi_.numerator->setEfficiencyFlag();
+//  mu3Phi_.denominator->setEfficiencyFlag();
+//  mu3Eta_.numerator->setEfficiencyFlag();
+//  mu3Eta_.denominator->setEfficiencyFlag();
+//  mu3Pt_.numerator->setEfficiencyFlag();
+//  mu3Pt_.denominator->setEfficiencyFlag();
+
     }
     else if (enum_ == 2 || enum_ == 4 || enum_ == 5 || enum_ == 8) {
       histname = "DiMuEta"; histtitle = "DiMuEta";
@@ -295,15 +386,27 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
       histname = "DiMuPhi"; histtitle = "DiMuPhi";
       bookME(ibooker,DiMuPhi_,histname,histtitle, phi_binning_);
       setMETitle(DiMuPhi_,"DiMu_#phi","events / 0.1 rad");
+//  DiMuPhi_.numerator->setEfficiencyFlag();
+//  DiMuPhi_.denominator->setEfficiencyFlag();
+//  DiMuEta_.numerator->setEfficiencyFlag();
+//  DiMuEta_.denominator->setEfficiencyFlag();
+//  DiMuPt_.numerator->setEfficiencyFlag();
+//  DiMuPt_.denominator->setEfficiencyFlag();
 
       if (enum_ == 4 || enum_ == 5) {
 	histname = "DiMudR"; histtitle = "DiMudR";
 	bookME(ibooker,DiMudR_,histname,histtitle, dR_binning_);
 	setMETitle(DiMudR_,"DiMu_#dR","events /");
+//  DiMudR_.numerator->setEfficiencyFlag();
+//  DiMudR_.denominator->setEfficiencyFlag();
+
 	if (enum_ == 4) {
 	  histname = "DiMuMass"; histtitle = "DiMuMass";
 	  bookME(ibooker,DiMuMass_,histname,histtitle, mass_binning_);
 	  setMETitle(DiMuMass_,"DiMu_#mass","events /");
+//  DiMuMass_.numerator->setEfficiencyFlag();
+//  DiMuMass_.denominator->setEfficiencyFlag();
+
 	}
       } else if (enum_ == 8) {
 	histname = "DiMuProb"; histtitle = "DiMuProb";
@@ -321,6 +424,15 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
 	histname = "DiMuDCA"; histtitle = "DiMuDCA";
 	bookME(ibooker,DiMuDCA_,histname,histtitle, dca_binning_);
 	setMETitle(DiMuDCA_,"DiMu_#dca","events /");
+//  DiMuPVcos_.numerator->setEfficiencyFlag();
+//  DiMuPVcos_.denominator->setEfficiencyFlag();
+//  DiMuProb_.numerator->setEfficiencyFlag();
+//  DiMuProb_.denominator->setEfficiencyFlag();
+//  DiMuDS_.numerator->setEfficiencyFlag();
+//  DiMuDS_.denominator->setEfficiencyFlag();
+//  DiMuDCA_.numerator->setEfficiencyFlag();
+//  DiMuDCA_.denominator->setEfficiencyFlag();
+
       }
     } // if (enum_ == 2 || enum_ == 4 || enum_ == 5 || enum_ == 8)
   }
@@ -334,6 +446,11 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
       histname = trMuPh+"_z0"; histtitle = trMuPh+"_z0";
       bookME(ibooker,muz0_,histname,histtitle, z0_binning_);
       setMETitle(muz0_,trMuPh+"_z0","events / bin");
+//  mud0_.numerator->setEfficiencyFlag();
+//  mud0_.denominator->setEfficiencyFlag();
+//  muz0_.numerator->setEfficiencyFlag();
+//  muz0_.denominator->setEfficiencyFlag();
+
     }
   }
 
@@ -400,26 +517,11 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
   }
 
 //filling common hists with additional info
-  if (den_genTriggerEventFlag_->on() &&  den_genTriggerEventFlag_->accept( iEvent, iSetup)) 
-  {
-    
-
-    if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
-    {
-
-
-    }
-  }
   double PrescaleWeight =1;
   // int PrescaleSet = hltPrescale_->prescaleSet(iEvent, iSetup);
   const std::string & hltpath = getTriggerName(hltpaths_den[0]);
   const std::string & hltpath1 = getTriggerName(hltpaths_num[0]);
 
-  if (den_genTriggerEventFlag_->on() &&  den_genTriggerEventFlag_->accept( iEvent, iSetup) && num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) ) {
-    double PrescaleHLT_num = 1;
-    double PrescaleHLT_den = 1;
-    double Prescale_den = 1;
-    double Prescale_num = 1;
 
     // when the L1 logic for numerator and denominator are prescaled, the L1 prescale contributes to the weight
 ///Prescale strategy proposed by Alessio
@@ -443,75 +545,12 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 //////////////////////////////////////////////////
 
 //Trying new strategy
- 
-    PrescaleHLT_den = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).second;
-    PrescaleHLT_num = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).second;
 
-    Prescale_den=PrescaleHLT_den;
-    Prescale_num=PrescaleHLT_num;
-
-    bool flag=true;
-
-//Denominator
-    if ( (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.size() > 0 )    
-//    if (false && (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.size() > 0 )    
-    {
-      Prescale_den =1;
-      flag=true;
-      std::cout<<"number of den seeds"<<(hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.size()<<std::endl;
-      for (size_t iSeed=0; iSeed < (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.size(); ++iSeed) 
-      {
-        int l1 = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.at(iSeed).second;
-        if (l1<1) continue;
-        if (l1>1) flag = false;
-        std::cout<<"l1 = "<<l1<<"; at i ="<< iSeed<<(hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.at(iSeed).first<<std::endl;
-        if (PrescaleHLT_den==1 && l1==1) Prescale_den *=1;
-//        if ( l1==1) Prescale_den *=1;
-        else Prescale_den *= 1 - (1.0/(PrescaleHLT_den*l1));
-//        else Prescale_den *= 1 - (1.0/(l1));
-      }
-     if (Prescale_den!=1 && Prescale_den!=0) Prescale_den = 1.0 / (1 - Prescale_den);
-     if (flag) Prescale_den=PrescaleHLT_den;
-    }
-///Numerator
-    if ( (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.size() > 0 )   
-//    if ( false && (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.size() > 0 )   
-    {
-      Prescale_num =1;
-      flag=true;
-      std::cout<<"number of num seeds"<<(hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.size()<<std::endl;
-      for (size_t iSeed=0; iSeed < (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.size(); ++iSeed) 
-      {
-        
-        int l1 = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(iSeed).second;
-        if (l1<1) continue; 
-        if (l1>1) flag = false;
-        std::cout<<"l1 = "<<l1<<"; at i = "<<iSeed<<(hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(iSeed).first<<std::endl;
-        if (PrescaleHLT_num==1 && l1==1) Prescale_num *=1;
-//        if (l1==1) Prescale_num *=1;
-        else Prescale_num *= 1 - (1.0/(PrescaleHLT_num*l1));
-//        else Prescale_num *= 1 - (1.0/(l1));
-      }
-      if (Prescale_num!=1 && Prescale_num!=0)Prescale_num = 1.0 / (1 - Prescale_num);
-      if (flag) Prescale_num=PrescaleHLT_num;
-//      if (flag) Prescale_num=1;
-    }
-    
-//    PrescaleWeight = 1;//v6
-//    PrescaleWeight = (PrescaleHLT_num*Prescale_num)/(PrescaleHLT_den*Prescale_den);//v5
-    PrescaleWeight = Prescale_num/Prescale_den;//v4
-//    PrescaleWeight = PrescaleHLT_num/PrescaleHLT_den;//v3
-    std::cout<<"HLT den prescale = "<<PrescaleHLT_den<<std::endl;     
-    std::cout<<"HLT num prescale = "<<PrescaleHLT_num<<std::endl;     
-    std::cout<<"total num prescale = "<<Prescale_num<<std::endl;
-    std::cout<<"total den prescale = "<<Prescale_den<<std::endl;
-    std::cout<<"total prescale = "<<PrescaleWeight<<std::endl;
-    // std::cout<<"total L1 prescale = "<<PrescaleL1<<std::endl;
-    // std::cout<<"total HLT prescale = "<<PrescaleHLT<<std::endl;
-    // std::cout<<"total prescale = "<<PrescaleWeight<<std::endl;
+  if (den_genTriggerEventFlag_->on() &&  den_genTriggerEventFlag_->accept( iEvent, iSetup) && num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) ) 
+  {
+    PrescaleWeight = Prescale(hltpath1, hltpath, iEvent, iSetup, hltPrescale_);
 
   }
-
   //  //std::cout<<"L1 = "<< PrescleL1<<"HLT = "<< PrescleHLT<<"HLT1"<<PrescleHLT1 <<std::endl;
   //  std::cout<<"PrescaleSet = "<<PrescaleSet<<std::endl;
   //  std::cout<<"hltnum = "<<hltpath1<<std::endl;
@@ -1359,6 +1398,116 @@ bool BPHMonitor::matchToTrigger(const std::string  &theTriggerName , T t){
   return matched;
 }
 
+double BPHMonitor::Prescale(const std::string  hltpath1, const std::string  hltpath, edm::Event const& iEvent, edm::EventSetup const& iSetup,  HLTPrescaleProvider* hltPrescale_)
+{
+  int PrescaleHLT_num = 1;
+  int PrescaleHLT_den = 1;
+  double Prescale_num = 1;
+  double TotalPrescale =1;
+  double  L1P=1, HLTP=1;
+  bool flag=true;
+  std::vector<bool> theSame_den;    
+  std::vector<bool> theSame_num;    
+//retrieving HLT prescale
+  PrescaleHLT_den = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).second;
+  PrescaleHLT_num = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).second;
+  HLTP =PrescaleHLT_num/ std::__gcd(PrescaleHLT_num, PrescaleHLT_den);
+
+//
+//retrieving L1 prescale
+//Checking if we have the same l1 seeds in den and num taking into account that they can be written in different order in num and den and some of them can be also switched off
+
+//check if for each den l1 there is the same l1 seed in num 
+  for (size_t iSeed=0; iSeed < (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.size(); ++iSeed)
+  {
+    std::string l1_den = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.at(iSeed).first;
+    int l1_denp = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.at(iSeed).second;
+    if (l1_denp<1) continue;
+    flag = false;
+    for (size_t iSeed1=0; iSeed1 < (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.size(); ++iSeed1)
+    {
+      std::string l1_num = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(iSeed1).first;
+      int l1_nump= (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(iSeed).second;
+      if (!l1_num.compare(l1_den) && (l1_nump>=1))//the same seed  
+      {
+        flag = true;
+        break;
+      }
+    }
+    theSame_den.push_back(flag);
+  }
+
+//check if for each num l1 there is the same l1 seed in den 
+  for (size_t iSeed=0; iSeed < (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.size(); ++iSeed)
+  {
+    std::string l1_num = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(iSeed).first;
+    int l1_nump = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(iSeed).second;
+    if (l1_nump<1) continue;
+    flag = false;
+    for (size_t iSeed1=0; iSeed1 < (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.size(); ++iSeed1)
+    {
+      std::string l1_den = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.at(iSeed1).first;
+      int l1_denp= (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.at(iSeed).second;
+      if (!l1_den.compare(l1_num) && (l1_denp>=1))//the same seed
+      {
+        flag = true;
+        break;
+      }
+    }
+    theSame_num.push_back(flag);
+  }
+
+  flag = true;    
+
+  if (theSame_num.size() == theSame_den.size())
+  {
+    for(unsigned int i =0;i<theSame_num.size();i++)
+    {
+      if ((!theSame_num.at(i)) || (!theSame_den.at(i)))
+      {
+        flag = false;break;     
+
+      }
+
+    }
+  }
+
+  if (flag && (theSame_num.size() == theSame_den.size())) 
+  {
+    L1P = 1; //den and num have the same set of l1 seeds
+  }
+  else //
+  {
+///Numerator
+    if ( (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.size() > 0 )   
+    {
+      Prescale_num =1;
+      std::cout<<"number of num seeds"<<(hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.size()<<std::endl;
+      for (size_t iSeed=0; iSeed < (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.size(); ++iSeed) 
+      {
+        
+        int l1 = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(iSeed).second;
+        if (l1<1) continue; 
+        std::cout<<"l1 = "<<l1<<"; at i = "<<iSeed<<(hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(iSeed).first<<std::endl;
+        if (l1==1){
+          Prescale_num =1;
+          break;
+        }
+        else Prescale_num *= 1 - (1.0/(l1));
+      }
+      if (Prescale_num!=1 )Prescale_num = 1.0 / (1 - Prescale_num);
+    }
+    L1P = Prescale_num;
+  }    
+  TotalPrescale = L1P*HLTP;
+  std::cout<<"HLT den prescale = "<<PrescaleHLT_den<<std::endl;     
+  std::cout<<"HLT num prescale = "<<PrescaleHLT_num<<std::endl;     
+  std::cout<<"HLT prescale = "<<HLTP<<std::endl;
+  std::cout<<"l1 prescale = "<<L1P<<std::endl;
+  std::cout<<"total prescale = "<<TotalPrescale<<std::endl;
+  theSame_num.clear();theSame_den.clear();
+  return TotalPrescale;
+}
 
 // Define this as a plug-in
 
