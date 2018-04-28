@@ -1299,57 +1299,61 @@ double BPHMonitor::Prescale(const std::string  hltpath1, const std::string  hltp
 //retrieving HLT prescale
   PrescaleHLT_den = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).second;
   PrescaleHLT_num = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).second;
-  HLTP =PrescaleHLT_num/ std::__gcd(PrescaleHLT_num, PrescaleHLT_den);
+  HLTP =PrescaleHLT_num/std::__gcd(PrescaleHLT_num, PrescaleHLT_den);
 
 //
 //retrieving L1 prescale
 //Checking if we have the same l1 seeds in den and num taking into account that they can be written in different order in num and den and some of them can be also switched off
 
 //check if for each den l1 there is the same l1 seed in num 
-  for (size_t iSeed=0; iSeed < (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.size(); ++iSeed)
-  {
-    std::string l1_den = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.at(iSeed).first;
-    int l1_denp = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.at(iSeed).second;
-    if (l1_denp<1) continue;
-    flag = false;
-    for (size_t iSeed1=0; iSeed1 < (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.size(); ++iSeed1)
+  if ( (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.size() > 0 )
+  {  
+    for (size_t iSeed=0; iSeed < (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.size(); ++iSeed)
     {
-      std::string l1_num = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(iSeed1).first;
-      int l1_nump= (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(iSeed).second;
-      if (!l1_num.compare(l1_den) && (l1_nump>=1))//the same seed  
+      std::string l1_den = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.at(iSeed).first;
+      int l1_denp = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.at(iSeed).second;
+      if (l1_denp<1) continue;
+      flag = false;
+      for (size_t iSeed1=0; iSeed1 < (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.size(); ++iSeed1)
       {
-        flag = true;
-        break;
+        std::string l1_num = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(iSeed1).first;
+        int l1_nump= (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(iSeed1).second;
+        if (!l1_num.compare(l1_den) && (l1_nump>=1))//the same seed  
+        {
+          flag = true;
+          break;
+        }
       }
+      theSame_den.push_back(flag);
     }
-    theSame_den.push_back(flag);
   }
-
 //check if for each num l1 there is the same l1 seed in den 
-  for (size_t iSeed=0; iSeed < (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.size(); ++iSeed)
+  if ( (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.size() > 0 )
   {
-    std::string l1_num = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(iSeed).first;
-    int l1_nump = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(iSeed).second;
-    if (l1_nump<1) continue;
-    flag = false;
-    for (size_t iSeed1=0; iSeed1 < (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.size(); ++iSeed1)
+    for (size_t iSeed=0; iSeed < (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.size(); ++iSeed)
     {
-      std::string l1_den = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.at(iSeed1).first;
-      int l1_denp= (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.at(iSeed).second;
-      if (!l1_den.compare(l1_num) && (l1_denp>=1))//the same seed
+      std::string l1_num = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(iSeed).first;
+      int l1_nump = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).first.at(iSeed).second;
+      if (l1_nump<1) continue;
+      flag = false;
+      for (size_t iSeed1=0; iSeed1 < (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.size(); ++iSeed1)
       {
-        flag = true;
-        break;
+        std::string l1_den = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.at(iSeed1).first;
+        int l1_denp= (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).first.at(iSeed1).second;
+        if (!l1_den.compare(l1_num) && (l1_denp>=1))//the same seed
+        {
+          flag = true;
+          break;
+        }
       }
+      theSame_num.push_back(flag);
     }
-    theSame_num.push_back(flag);
-  }
-
+  } 
   flag = true;    
 
   if (theSame_num.size() == theSame_den.size())
   {
-    for(unsigned int i =0;i<theSame_num.size();i++)
+    for(size_t i=0; i<theSame_num.size() ; ++i)
     {
       if ((!theSame_num.at(i)) || (!theSame_den.at(i)))
       {
@@ -1393,7 +1397,7 @@ double BPHMonitor::Prescale(const std::string  hltpath1, const std::string  hltp
   std::cout<<"HLT prescale = "<<HLTP<<std::endl;
   std::cout<<"l1 prescale = "<<L1P<<std::endl;
   std::cout<<"total prescale = "<<TotalPrescale<<std::endl;
-  theSame_num.clear();theSame_den.clear();
+//  theSame_num.clear();theSame_den.clear();
   return TotalPrescale;
 }
 
