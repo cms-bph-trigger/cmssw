@@ -224,71 +224,6 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
 				edm::Run const        & iRun,
 				edm::EventSetup const & iSetup) 
 {  
-////
-//// muPhi_.numerator->setEfficiencyFlag();
-////  muPhi_.denominator->setEfficiencyFlag();
-////  muEta_.numerator->setEfficiencyFlag();
-////  muEta_.denominator->setEfficiencyFlag();
-////  muPt_.numerator->setEfficiencyFlag();
-////  muPt_.denominator->setEfficiencyFlag();
-////  mud0_.numerator->setEfficiencyFlag();
-////  mud0_.denominator->setEfficiencyFlag();
-////  muz0_.numerator->setEfficiencyFlag();
-////  muz0_.denominator->setEfficiencyFlag();
-//
-////  mu1Phi_.numerator->setEfficiencyFlag();
-////  mu1Phi_.denominator->setEfficiencyFlag();
-////  mu1Eta_.numerator->setEfficiencyFlag();
-////  mu1Eta_.denominator->setEfficiencyFlag();
-////  mu1Pt_.numerator->setEfficiencyFlag();
-////  mu1Pt_.denominator->setEfficiencyFlag();
-//
-////  mu2Phi_.numerator->setEfficiencyFlag();
-////  mu2Phi_.denominator->setEfficiencyFlag();
-////  mu2Eta_.numerator->setEfficiencyFlag();
-////  mu2Eta_.denominator->setEfficiencyFlag();
-////  mu2Pt_.numerator->setEfficiencyFlag();
-////  mu2Pt_.denominator->setEfficiencyFlag();
-//
-////  mu3Phi_.numerator->setEfficiencyFlag();
-////  mu3Phi_.denominator->setEfficiencyFlag();
-////  mu3Eta_.numerator->setEfficiencyFlag();
-////  mu3Eta_.denominator->setEfficiencyFlag();
-////  mu3Pt_.numerator->setEfficiencyFlag();
-////  mu3Pt_.denominator->setEfficiencyFlag();
-//
-////  phPhi_.numerator->setEfficiencyFlag();
-////  phPhi_.denominator->setEfficiencyFlag();
-////  phEta_.numerator->setEfficiencyFlag();
-////  phEta_.denominator->setEfficiencyFlag();
-////  phPt_.numerator->setEfficiencyFlag();
-////  phPt_.denominator->setEfficiencyFlag();
-//
-//
-////  DiMuPhi_.numerator->setEfficiencyFlag();
-////  DiMuPhi_.denominator->setEfficiencyFlag();
-////  DiMuEta_.numerator->setEfficiencyFlag();
-////  DiMuEta_.denominator->setEfficiencyFlag();
-////  DiMuPt_.numerator->setEfficiencyFlag();
-////  DiMuPt_.denominator->setEfficiencyFlag();
-////  DiMuPVcos_.numerator->setEfficiencyFlag();
-////  DiMuPVcos_.denominator->setEfficiencyFlag();
-////  DiMuProb_.numerator->setEfficiencyFlag();
-////  DiMuProb_.denominator->setEfficiencyFlag();
-////  DiMuDS_.numerator->setEfficiencyFlag();
-////  DiMuDS_.denominator->setEfficiencyFlag();
-////  DiMuDCA_.numerator->setEfficiencyFlag();
-////  DiMuDCA_.denominator->setEfficiencyFlag();
-////  DiMuMass_.numerator->setEfficiencyFlag();
-////  DiMuMass_.denominator->setEfficiencyFlag();
-////  DiMudR_.numerator->setEfficiencyFlag();
-////  DiMudR_.denominator->setEfficiencyFlag();
-
-
-///  
-
-
-
   std::string histname, histtitle, istnp, trMuPh;
   bool Ph_ = false; if (enum_ == 7) Ph_ = true;
   if (tnp_) istnp = "Tag_and_Probe/"; else istnp = "";
@@ -308,12 +243,6 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
     histname = trMuPh+"Eta"; histtitle = trMuPh+"_Eta";
     bookME(ibooker,muEta_,histname,histtitle, eta_binning_);
     setMETitle(muEta_,trMuPh+"_#eta","events / 0.2");
-// muPhi_.numerator->setEfficiencyFlag();
-//  muPhi_.denominator->setEfficiencyFlag();
-//  muEta_.numerator->setEfficiencyFlag();
-//  muEta_.denominator->setEfficiencyFlag();
-//  muPt_.numerator->setEfficiencyFlag();
-//  muPt_.denominator->setEfficiencyFlag();
 
   }
   else {
@@ -340,19 +269,6 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
     histname = trMuPh+"2Eta"; histtitle = trMuPh+"2_Eta";
     bookME(ibooker,mu2Eta_,histname,histtitle, eta_binning_);
     setMETitle(mu2Eta_,trMuPh+"_#eta","events / 0.2");
-//  mu1Phi_.numerator->setEfficiencyFlag();
-//  mu1Phi_.denominator->setEfficiencyFlag();
-//  mu1Eta_.numerator->setEfficiencyFlag();
-//  mu1Eta_.denominator->setEfficiencyFlag();
-//  mu1Pt_.numerator->setEfficiencyFlag();
-//  mu1Pt_.denominator->setEfficiencyFlag();
-
-//  mu2Phi_.numerator->setEfficiencyFlag();
-//  mu2Phi_.denominator->setEfficiencyFlag();
-//  mu2Eta_.numerator->setEfficiencyFlag();
-//  mu2Eta_.denominator->setEfficiencyFlag();
-//  mu2Pt_.numerator->setEfficiencyFlag();
-//  mu2Pt_.denominator->setEfficiencyFlag();
 
     if (enum_ == 6) {
       histname = trMuPh+"3Eta"; histtitle = trMuPh+"3Eta";
@@ -366,12 +282,6 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
       histname = trMuPh+"3Phi"; histtitle = trMuPh+"3Phi";
       bookME(ibooker,mu3Phi_,histname,histtitle, phi_binning_);
       setMETitle(mu3Phi_,trMuPh+"3_#phi","events / 0.1 rad");
-//  mu3Phi_.numerator->setEfficiencyFlag();
-//  mu3Phi_.denominator->setEfficiencyFlag();
-//  mu3Eta_.numerator->setEfficiencyFlag();
-//  mu3Eta_.denominator->setEfficiencyFlag();
-//  mu3Pt_.numerator->setEfficiencyFlag();
-//  mu3Pt_.denominator->setEfficiencyFlag();
 
     }
     else if (enum_ == 2 || enum_ == 4 || enum_ == 5 || enum_ == 8) {
@@ -386,26 +296,16 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
       histname = "DiMuPhi"; histtitle = "DiMuPhi";
       bookME(ibooker,DiMuPhi_,histname,histtitle, phi_binning_);
       setMETitle(DiMuPhi_,"DiMu_#phi","events / 0.1 rad");
-//  DiMuPhi_.numerator->setEfficiencyFlag();
-//  DiMuPhi_.denominator->setEfficiencyFlag();
-//  DiMuEta_.numerator->setEfficiencyFlag();
-//  DiMuEta_.denominator->setEfficiencyFlag();
-//  DiMuPt_.numerator->setEfficiencyFlag();
-//  DiMuPt_.denominator->setEfficiencyFlag();
 
       if (enum_ == 4 || enum_ == 5) {
 	histname = "DiMudR"; histtitle = "DiMudR";
 	bookME(ibooker,DiMudR_,histname,histtitle, dR_binning_);
 	setMETitle(DiMudR_,"DiMu_#dR","events /");
-//  DiMudR_.numerator->setEfficiencyFlag();
-//  DiMudR_.denominator->setEfficiencyFlag();
 
 	if (enum_ == 4) {
 	  histname = "DiMuMass"; histtitle = "DiMuMass";
 	  bookME(ibooker,DiMuMass_,histname,histtitle, mass_binning_);
 	  setMETitle(DiMuMass_,"DiMu_#mass","events /");
-//  DiMuMass_.numerator->setEfficiencyFlag();
-//  DiMuMass_.denominator->setEfficiencyFlag();
 
 	}
       } else if (enum_ == 8) {
@@ -424,14 +324,6 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
 	histname = "DiMuDCA"; histtitle = "DiMuDCA";
 	bookME(ibooker,DiMuDCA_,histname,histtitle, dca_binning_);
 	setMETitle(DiMuDCA_,"DiMu_#dca","events /");
-//  DiMuPVcos_.numerator->setEfficiencyFlag();
-//  DiMuPVcos_.denominator->setEfficiencyFlag();
-//  DiMuProb_.numerator->setEfficiencyFlag();
-//  DiMuProb_.denominator->setEfficiencyFlag();
-//  DiMuDS_.numerator->setEfficiencyFlag();
-//  DiMuDS_.denominator->setEfficiencyFlag();
-//  DiMuDCA_.numerator->setEfficiencyFlag();
-//  DiMuDCA_.denominator->setEfficiencyFlag();
 
       }
     } // if (enum_ == 2 || enum_ == 4 || enum_ == 5 || enum_ == 8)
@@ -446,10 +338,6 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
       histname = trMuPh+"_z0"; histtitle = trMuPh+"_z0";
       bookME(ibooker,muz0_,histname,histtitle, z0_binning_);
       setMETitle(muz0_,trMuPh+"_z0","events / bin");
-//  mud0_.numerator->setEfficiencyFlag();
-//  mud0_.denominator->setEfficiencyFlag();
-//  muz0_.numerator->setEfficiencyFlag();
-//  muz0_.denominator->setEfficiencyFlag();
 
     }
   }
