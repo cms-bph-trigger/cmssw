@@ -58,6 +58,7 @@ BPHMonitor::BPHMonitor( const edm::ParameterSet& iConfig ) :
   , kaon_mass ( iConfig.getParameter<double>("kaon_mass" ) )
   , mu_mass ( iConfig.getParameter<double>("mu_mass" ) )
   , min_dR ( iConfig.getParameter<double>("min_dR" ) )
+  , max_dR ( iConfig.getParameter<double>("max_dR" ) )
   , minprob ( iConfig.getParameter<double>("minprob" ) )
   , mincos ( iConfig.getParameter<double>("mincos" ) )
   , minDS ( iConfig.getParameter<double>("minDS" ) )
@@ -580,6 +581,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 
         case 4:
           if (dimuonCL<minprob) continue;
+          if (reco::deltaR(m,m1)>max_dR) continue;
           DiMuMass_.denominator ->Fill(DiMuMass);
           if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) && muoSelection_ref(m1))
     	    {
@@ -1066,6 +1068,7 @@ void BPHMonitor::fillDescriptions(edm::ConfigurationDescriptions & descriptions)
   desc.add<double>( "kaon_mass", 0.493677 );
   desc.add<double>( "mu_mass", 0.1056583745);
   desc.add<double>( "min_dR", 0.001);
+  desc.add<double>( "max_dR", 1.4);
   desc.add<double>( "minprob", 0.005 );
   desc.add<double>( "mincos", 0.95 );
   desc.add<double>( "minDS", 3. );

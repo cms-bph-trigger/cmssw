@@ -199,6 +199,7 @@ private:
   double kaon_mass;
   double mu_mass;
   double min_dR;
+  double max_dR;
 
   double minprob;
   double mincos;
