@@ -552,7 +552,6 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
     	    {
     	      if( !matchToTrigger(hltpath1,m1))continue;
     	      if( !matchToTrigger(hltpath1,m))continue;
-            PrescaleWeight = 1;//not sure if the correction is needed for this module
     	      mu1Eta_.numerator->Fill(m.eta(),PrescaleWeight);
     	      mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
     	      mu2Eta_.numerator->Fill(m1.eta(),PrescaleWeight);
