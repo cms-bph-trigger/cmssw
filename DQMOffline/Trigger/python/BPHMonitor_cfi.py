@@ -15,10 +15,13 @@ hltBPHmonitoring.Upsilon = cms.int32(0)
 hltBPHmonitoring.Jpsi = cms.int32(0)
 hltBPHmonitoring.seagull = cms.int32(0)
 hltBPHmonitoring.histoPSet.ptPSet = cms.PSet(
-    edges = cms.vdouble(-0.5, 0, 2, 4, 8, 10, 12, 14, 16, 18, 20, 22, 25, 30, 35, 40, 50, 70),
+    edges = cms.vdouble(-0.5, 0, 2, 4, 8, 10, 12, 16, 20, 25, 30, 35, 40, 50),
+)
+hltBPHmonitoring.histoPSet.dMu_ptPSet = cms.PSet(
+    edges = cms.vdouble(6, 8, 12, 16,  20,  25, 30, 35, 40, 50, 70)
 )
 hltBPHmonitoring.histoPSet.phiPSet = cms.PSet(
-  nbins = cms.int32 (  16  ),
+  nbins = cms.int32 (  8  ),
   xmin  = cms.double(   -3.2),
   xmax  = cms.double(3.2),
 )

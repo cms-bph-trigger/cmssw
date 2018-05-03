@@ -98,7 +98,7 @@ protected:
 //  bool matchToTrigger(const std::string  &theTriggerName , T t, std::string filterName, std::vector<unsigned int> filterID);
   bool matchToTrigger(const std::string  &theTriggerName , T t);
 
-  double Prescale(const std::string  num, const std::string  den, edm::Event const& iEvent, edm::EventSetup const& iSetup,  HLTPrescaleProvider* hltPrescale_);
+  int Prescale(const std::string  num, const std::string  den, edm::Event const& iEvent, edm::EventSetup const& iSetup,  HLTPrescaleProvider* hltPrescale_);
   //bool matchToTrigger(std::string theTriggerName,T t, edm::Handle<trigger::TriggerEventWithRefs> handleTriggerEvent);
 
 
@@ -116,6 +116,7 @@ private:
   edm::EDGetTokenT<reco::VertexCollection> vtxToken_;
   MEbinning           phi_binning_;
   MEbinning           pt_binning_;
+  MEbinning           dMu_pt_binning_;
   MEbinning           eta_binning_;
   MEbinning           d0_binning_;
   MEbinning           z0_binning_;
