@@ -71,10 +71,10 @@ Dimuon0_er.tnp = cms.bool(False)
 Dimuon0_er.enum = cms.int32(3)
 Dimuon0_er.numGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_Dimuon0_LowMass_L1_0er1p5_v*")
 #Dimuon0_er.numGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu0er1p5_SQ_OS")
-Dimuon0_er.denGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_Dimuon0_LowMass_v*")
+Dimuon0_er.denGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_Dimuon0_Jpsi_v*")
 #Dimuon0_er.denGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu0_SQ_OS")
 Dimuon0_er.muoSelection_ref = cms.string("abs(eta)<1.5 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
-Dimuon0_er.DMSelection_ref = cms.string("abs(Eta)<1.5 ")
+Dimuon0_er.DMSelection_ref = cms.string("abs(Eta)<1.5 & M<3.2 & M>3 ")
 
 ###
 Dimuon0_Upsilon_er = hltBPHmonitoring.clone()
@@ -102,6 +102,17 @@ DMu4_3_Bs_dRcut.denGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_Dimuon0_L
 #DMu4_3_Bs_dRcut.denGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu0er1p5_SQ_OS")
 DMu4_3_Bs_dRcut.muoSelection_ref = cms.string("abs(eta)<1.5 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
 DMu4_3_Bs_dRcut.DMSelection_ref = cms.string("abs(Eta)<1.5")
+DMu4_3_Bs_dRcut.histoPSet.dRPSet = cms.PSet(
+  nbins = cms.int32 ( 20 ),
+  xmin  = cms.double(0.4),
+  xmax  = cms.double(1.4),
+)
+DMu4_3_Bs_dRcut.histoPSet.massPSet = cms.PSet(
+  nbins = cms.int32 (9),
+  xmin  = cms.double(  4.4),
+  xmax  = cms.double(6.2),
+)
+
 
 DMu4_3_Jpsi_dRcut = hltBPHmonitoring.clone()
 DMu4_3_Jpsi_dRcut.FolderName = cms.string('HLT/BPH/DMu4_3_Jpsi_L1_dR/')
@@ -114,6 +125,12 @@ DMu4_3_Jpsi_dRcut.denGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_Dimuon0
 #DMu4_3_Jpsi_dRcut.denGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu0er1p5_SQ_OS")
 DMu4_3_Jpsi_dRcut.muoSelection_ref = cms.string("pt>5.0 &&  abs(eta)<1.5 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
 DMu4_3_Jpsi_dRcut.DMSelection_ref = cms.string("abs(Eta)<1.5")
+DMu4_3_Jpsi_dRcut.histoPSet.massPSet = cms.PSet(
+  nbins = cms.int32 ( 10 ),
+  xmin  = cms.double(2.8),
+  xmax  = cms.double(3.3),
+)
+
 
 Dimuon14_Phi_dRcut = hltBPHmonitoring.clone()
 Dimuon14_Phi_dRcut.FolderName = cms.string('HLT/BPH/DiMu14_Phi_L1_dR/')
@@ -126,6 +143,17 @@ Dimuon14_Phi_dRcut.denGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_Dimuon
 #Dimuon14_Phi_dRcut.denGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu0er1p5_SQ_OS")
 Dimuon14_Phi_dRcut.muoSelection_ref = cms.string("abs(eta)<1.5 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
 Dimuon14_Phi_dRcut.DMSelection_ref = cms.string("Pt>15 & abs(Eta)<1.2")
+Dimuon14_Phi_dRcut.histoPSet.dRPSet = cms.PSet(
+  nbins = cms.int32 ( 10 ),
+  xmin  = cms.double(0),
+  xmax  = cms.double(0.2),
+)
+Dimuon14_Phi_dRcut.histoPSet.massPSet = cms.PSet(
+  nbins = cms.int32 ( 10 ),
+  xmin  = cms.double(0.8),
+  xmax  = cms.double(1.3),
+)
+
 
 DMu4_LowMassNonResonantTrk_Displaced_dRcut = hltBPHmonitoring.clone()
 DMu4_LowMassNonResonantTrk_Displaced_dRcut.FolderName = cms.string('HLT/BPH/DMu4_LowMassNonResonantTrk_Displaced_L1_dR/')
@@ -137,6 +165,11 @@ DMu4_LowMassNonResonantTrk_Displaced_dRcut.denGenericTriggerEventPSet.hltPaths =
 #DMu4_LowMassNonResonantTrk_Displaced_dRcut.denGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu0er1p5_SQ_OS")
 DMu4_LowMassNonResonantTrk_Displaced_dRcut.muoSelection_ref = cms.string("pt>5 & abs(eta)<1.5 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
 DMu4_LowMassNonResonantTrk_Displaced_dRcut.DMSelection_ref = cms.string("abs(Eta)<1.5")
+DMu4_LowMassNonResonantTrk_Displaced_dRcut.histoPSet.massPSet = cms.PSet(
+  nbins = cms.int32 ( 10 ),
+  xmin  = cms.double(1.),
+  xmax  = cms.double(3.),
+)
 
 DMu4_LowMassNonResonantTrk_Displaced_dRcut_low = hltBPHmonitoring.clone()
 DMu4_LowMassNonResonantTrk_Displaced_dRcut_low.FolderName = cms.string('HLT/BPH/DMu4_LowMassNonResonantTrk_Displaced_L1_dR_low/')
@@ -148,6 +181,12 @@ DMu4_LowMassNonResonantTrk_Displaced_dRcut_low.denGenericTriggerEventPSet.hltPat
 #DMu4_LowMassNonResonantTrk_Displaced_dRcut_low.denGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu4_SQ_OS")
 DMu4_LowMassNonResonantTrk_Displaced_dRcut_low.muoSelection_ref = cms.string("pt>5 & abs(eta)<2.4 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
 DMu4_LowMassNonResonantTrk_Displaced_dRcut_low.DMSelection_ref = cms.string("abs(Eta)<2.4")
+DMu4_LowMassNonResonantTrk_Displaced_dRcut_low.max_dR = cms.double(1.2)
+DMu4_LowMassNonResonantTrk_Displaced_dRcut_low.histoPSet.massPSet = cms.PSet(
+  nbins = cms.int32 ( 10 ),
+  xmin  = cms.double(1.),
+  xmax  = cms.double(3.),
+)
 
 
 DMu4_JpsiTrk_Displaced_dRcut = hltBPHmonitoring.clone()
@@ -160,6 +199,12 @@ DMu4_JpsiTrk_Displaced_dRcut.denGenericTriggerEventPSet.hltPaths = cms.vstring("
 #DMu4_JpsiTrk_Displaced_dRcut.denGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu0er1p5_SQ_OS")
 DMu4_JpsiTrk_Displaced_dRcut.muoSelection_ref = cms.string("pt>5 & abs(eta)<1.5 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
 DMu4_JpsiTrk_Displaced_dRcut.DMSelection_ref = cms.string("abs(Eta)<1.5")
+DMu4_JpsiTrk_Displaced_dRcut.histoPSet.massPSet = cms.PSet(
+  nbins = cms.int32 ( 10 ),
+  xmin  = cms.double(2.8),
+  xmax  = cms.double(3.3),
+)
+
 
 DMu4_JpsiTrk_Displaced_dRcut_low = hltBPHmonitoring.clone()
 DMu4_JpsiTrk_Displaced_dRcut_low.FolderName = cms.string('HLT/BPH/DMu4_JpsiTrk_Displaced_L1_dR_low/')
@@ -171,7 +216,12 @@ DMu4_JpsiTrk_Displaced_dRcut_low.denGenericTriggerEventPSet.hltPaths = cms.vstri
 #DMu4_JpsiTrk_Displaced_dRcut_low.denGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu4_SQ_OS")
 DMu4_JpsiTrk_Displaced_dRcut_low.muoSelection_ref = cms.string("pt>5 & abs(eta)<2.4  &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
 DMu4_JpsiTrk_Displaced_dRcut_low.DMSelection_ref = cms.string("abs(Eta)<2.4")
-
+DMu4_JpsiTrk_Displaced_dRcut_low.max_dR = cms.double(1.2)
+DMu4_JpsiTrk_Displaced_dRcut_low.histoPSet.massPSet = cms.PSet(
+  nbins = cms.int32 ( 10 ),
+  xmin  = cms.double(2.8),
+  xmax  = cms.double(3.3),
+)
 
 DMu4_PsiPrimeTrk_Displaced_dRcut = hltBPHmonitoring.clone()
 DMu4_PsiPrimeTrk_Displaced_dRcut.FolderName = cms.string('HLT/BPH/DMu4_PsiPrimeTrk_Displaced_L1_dR/')
@@ -183,6 +233,12 @@ DMu4_PsiPrimeTrk_Displaced_dRcut.denGenericTriggerEventPSet.hltPaths = cms.vstri
 #DMu4_PsiPrimeTrk_Displaced_dRcut.denGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu0er1p5_SQ_OS")
 DMu4_PsiPrimeTrk_Displaced_dRcut.muoSelection_ref = cms.string("pt>5 & abs(eta)<1.5 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
 DMu4_PsiPrimeTrk_Displaced_dRcut.DMSelection_ref = cms.string("abs(Eta)<1.5")
+DMu4_PsiPrimeTrk_Displaced_dRcut.histoPSet.massPSet = cms.PSet(
+  nbins = cms.int32 ( 12 ),
+  xmin  = cms.double(3.3),
+  xmax  = cms.double(3.9),
+)
+
 
 
 DMu4_PsiPrimeTrk_Displaced_dRcut_low = hltBPHmonitoring.clone()
@@ -195,6 +251,12 @@ DMu4_PsiPrimeTrk_Displaced_dRcut_low.denGenericTriggerEventPSet.hltPaths = cms.v
 #DMu4_PsiPrimeTrk_Displaced_dRcut_low.denGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu4_SQ_OS")
 DMu4_PsiPrimeTrk_Displaced_dRcut_low.muoSelection_ref = cms.string("pt>5 & abs(eta)<2.4 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
 DMu4_PsiPrimeTrk_Displaced_dRcut_low.DMSelection_ref = cms.string("abs(Eta)<2.4")
+DMu4_PsiPrimeTrk_Displaced_dRcut_low.max_dR = cms.double(1.2)
+DMu4_PsiPrimeTrk_Displaced_dRcut_low.histoPSet.massPSet = cms.PSet(
+  nbins = cms.int32 ( 12 ),
+  xmin  = cms.double(3.3),
+  xmax  = cms.double(3.9),
+)
 
 
 Dimuon25_Jpsi_dRcut = hltBPHmonitoring.clone()
@@ -208,6 +270,16 @@ Dimuon25_Jpsi_dRcut.denGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_Dimuo
 #Dimuon25_Jpsi_dRcut.denGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu0er1p5_SQ_OS")
 Dimuon25_Jpsi_dRcut.muoSelection_ref = cms.string("abs(eta)<1.5 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
 Dimuon25_Jpsi_dRcut.DMSelection_ref = cms.string("Pt>26 & abs(Eta)<1.5")
+Dimuon25_Jpsi_dRcut.histoPSet.dRPSet = cms.PSet(
+  nbins = cms.int32 ( 10 ),
+  xmin  = cms.double(0.),
+  xmax  = cms.double(0.5),
+)
+Dimuon25_Jpsi_dRcut.histoPSet.massPSet = cms.PSet(
+  nbins = cms.int32 ( 10 ),
+  xmin  = cms.double(2.8),
+  xmax  = cms.double(3.3),
+)
 
 
 Dimuon18_PsiPrime_dRcut = hltBPHmonitoring.clone()
@@ -220,6 +292,11 @@ Dimuon18_PsiPrime_dRcut.denGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_D
 #Dimuon18_PsiPrime_dRcut.denGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu0er1p5_SQ_OS")
 Dimuon18_PsiPrime_dRcut.muoSelection_ref = cms.string("abs(eta)<1.5 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
 Dimuon18_PsiPrime_dRcut.DMSelection_ref = cms.string("Pt>19 & abs(Eta)<1.5")
+Dimuon18_PsiPrime_dRcut.histoPSet.massPSet = cms.PSet(
+  nbins = cms.int32 ( 12 ),
+  xmin  = cms.double(3.3),
+  xmax  = cms.double(3.9),
+)
 
 
 Dimuon12_Upsilon_dRcut = hltBPHmonitoring.clone()
@@ -233,6 +310,12 @@ Dimuon12_Upsilon_dRcut.denGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_Di
 #Dimuon12_Upsilon_dRcut.denGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu0er1p5_SQ_OS")
 Dimuon12_Upsilon_dRcut.muoSelection_ref = cms.string("abs(eta)<1.5 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
 Dimuon12_Upsilon_dRcut.DMSelection_ref = cms.string("Pt>13 & abs(Eta)<1.5")
+Dimuon12_Upsilon_dRcut.histoPSet.massPSet = cms.PSet(
+  nbins = cms.int32 ( 24),
+  xmin  = cms.double(8.8),
+  xmax  = cms.double(10),
+)
+
 
 Dimuon0_Upsilon_masscut = hltBPHmonitoring.clone()
 Dimuon0_Upsilon_masscut.FolderName = cms.string('HLT/BPH/DiMu0_Upsilon_L1_masscut/')
@@ -258,6 +341,17 @@ Dimuon25_Jpsi_dRcut_low.denGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_D
 #Dimuon25_Jpsi_dRcut_low.denGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu4_SQ_OS")
 Dimuon25_Jpsi_dRcut_low.muoSelection_ref = cms.string("pt>5 && abs(eta)<2.4 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
 Dimuon25_Jpsi_dRcut_low.DMSelection_ref = cms.string("Pt>26 & abs(Eta)<2.4")
+Dimuon25_Jpsi_dRcut_low.max_dR = cms.double(1.2)
+Dimuon25_Jpsi_dRcut_low.histoPSet.dRPSet = cms.PSet(
+  nbins = cms.int32 ( 10 ),
+  xmin  = cms.double(0.),
+  xmax  = cms.double(0.4),
+)
+Dimuon25_Jpsi_dRcut_low.histoPSet.massPSet = cms.PSet(
+  nbins = cms.int32 ( 10 ),
+  xmin  = cms.double(2.8),
+  xmax  = cms.double(3.3),
+)
 
 
 Dimuon18_Jpsi_dRcut_low = hltBPHmonitoring.clone()
@@ -271,7 +365,12 @@ Dimuon18_Jpsi_dRcut_low.denGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_D
 #Dimuon18_Jpsi_dRcut_low.denGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu4_SQ_OS")
 Dimuon18_Jpsi_dRcut_low.muoSelection_ref = cms.string("pt>5 && abs(eta)<2.4 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
 Dimuon18_Jpsi_dRcut_low.DMSelection_ref = cms.string("Pt>19 & abs(Eta)<2.4")
-
+Dimuon18_Jpsi_dRcut_low.max_dR = cms.double(1.2)
+Dimuon18_Jpsi_dRcut_low.histoPSet.massPSet = cms.PSet(
+  nbins = cms.int32 ( 10 ),
+  xmin  = cms.double(2.8),
+  xmax  = cms.double(3.3),
+)
 
 ###
 ###mass cut
@@ -340,6 +439,11 @@ Trimuon2_masscut6.denGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_Dimuon0
 #Trimuon2_masscut6.denGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu0_SQ_OS")
 Trimuon2_masscut6.muoSelection_ref = cms.string("pt>3 && abs(eta)<2.4 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
 Trimuon2_masscut6.DMSelection_ref = cms.string("M<9 & abs(Eta)<2.4")
+Trimuon2_masscut6.histoPSet.dRPSet = cms.PSet(
+  nbins = cms.int32 ( 20 ),
+  xmin  = cms.double(0.),
+  xmax  = cms.double(1.),
+)
 
 ###triple muon
 
@@ -518,6 +622,7 @@ Dimuon0_addTrack_Jpsi.trOrMu = cms.int32(True)
 Dimuon0_addTrackTrack_Jpsi = hltBPHmonitoring.clone()
 Dimuon0_addTrackTrack_Jpsi.FolderName = cms.string('HLT/BPH/DiMu0_L1_addTrackTrack_Jpsi/')
 Dimuon0_addTrackTrack_Jpsi.tnp = cms.bool(False)
+Dimuon0_addTrackTrack_Jpsi.trOrMu = cms.int32(True)
 Dimuon0_addTrackTrack_Jpsi.enum = cms.int32(11)
 Dimuon0_addTrackTrack_Jpsi.numGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_DoubleMu4_JpsiTrkTrk_Displaced_v*")
 #Dimuon0_addTrackTrack_Jpsi.numGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu4_SQ_OS_dR_Max1p2 OR L1_DoubleMu0er1p5_SQ_OS_dR_Max1p4")
@@ -599,6 +704,13 @@ DimuonX_HLT_OS_Vtx.denGenericTriggerEventPSet.hltPaths = cms.vstring('HLT_Dimuon
 DimuonX_HLT_OS_Vtx.muoSelection_ref = cms.string('abs(eta)<2.4 & isPFMuon & isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0')
 
 
+#hltBPHmonitoring.histoPSet.ptPSet = cms.PSet(
+#    edges = cms.vdouble(-0.5, 0, 2, 4, 8, 10, 12, 14, 16, 18, 20, 22, 25, 30, 35, 40, 50, 70),
+#)
+#hltBPHmonitoring.histoPSet.dMu_ptPSet = cms.PSet(
+#    edges = cms.vdouble(-0.5, 0, 2, 4, 8, 10, 12, 14, 16, 18, 20, 22, 25, 30, 35, 40, 50, 70),
+#)
+
 ###
 
 bphHLTmonitoring = cms.Sequence(
@@ -647,7 +759,7 @@ bphHLTmonitoring = cms.Sequence(
     + DM2_Jpsi_addTkMuTkMu_Phi
     + Dimuon0_addTrackMu_Onia
     + Dimuon0_addTrackMu_Phi1
-   # + DimuonX_HLT_OS_Vtx
+    #+ DimuonX_HLT_OS_Vtx
 )
 
 

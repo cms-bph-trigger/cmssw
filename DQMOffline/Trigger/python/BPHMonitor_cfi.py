@@ -8,21 +8,25 @@ hltBPHmonitoring = bphMonitoring.clone()
 #)
 hltBPHmonitoring.FolderName = cms.string('HLT/BPH/Dimuon_10_Jpsi_Barrel/')
 hltBPHmonitoring.tnp = cms.bool(True)
+hltBPHmonitoring.max_dR = cms.double(1.4)
 hltBPHmonitoring.minmass = cms.double(2.596)
 hltBPHmonitoring.maxmass = cms.double(3.596)
 hltBPHmonitoring.Upsilon = cms.int32(0)
 hltBPHmonitoring.Jpsi = cms.int32(0)
 hltBPHmonitoring.seagull = cms.int32(0)
 hltBPHmonitoring.histoPSet.ptPSet = cms.PSet(
-    edges = cms.vdouble(-0.5, 0, 2, 4, 8, 10, 12, 14, 16, 18, 20, 22, 25, 30, 35, 40, 50, 70),
+    edges = cms.vdouble(-0.5, 0, 2, 4, 8, 10, 12, 16, 20, 25, 30, 35, 40, 50),
+)
+hltBPHmonitoring.histoPSet.dMu_ptPSet = cms.PSet(
+    edges = cms.vdouble(6, 8, 12, 16,  20,  25, 30, 35, 40, 50, 70)
 )
 hltBPHmonitoring.histoPSet.phiPSet = cms.PSet(
-  nbins = cms.int32 (  64  ),
+  nbins = cms.int32 (  8  ),
   xmin  = cms.double(   -3.2),
   xmax  = cms.double(3.2),
 )
 hltBPHmonitoring.histoPSet.etaPSet = cms.PSet(
-  nbins = cms.int32 (  24  ),
+  nbins = cms.int32 (  12  ),
   xmin  = cms.double(   -2.4),
   xmax  = cms.double(2.4),
 )
@@ -38,35 +42,35 @@ hltBPHmonitoring.histoPSet.z0PSet = cms.PSet(
 )
 
 hltBPHmonitoring.histoPSet.dRPSet = cms.PSet(
-  nbins = cms.int32 (  20 ),
+  nbins = cms.int32 (  16 ),
   xmin  = cms.double(   0),
-  xmax  = cms.double(2.0),
+  xmax  = cms.double(0.8),
 )
 
 hltBPHmonitoring.histoPSet.massPSet = cms.PSet(
-  nbins = cms.int32 ( 30 ),
+  nbins = cms.int32 ( 140 ),
   xmin  = cms.double(  0),
-  xmax  = cms.double(30.0),
+  xmax  = cms.double(7.),
 )
 hltBPHmonitoring.histoPSet.dcaPSet = cms.PSet(
-  nbins = cms.int32 ( 40 ),
+  nbins = cms.int32 ( 10 ),
   xmin  = cms.double(  0),
-  xmax  = cms.double(2.),
+  xmax  = cms.double(0.5),
 )
 
 hltBPHmonitoring.histoPSet.dsPSet = cms.PSet(
-  nbins = cms.int32 ( 50),
+  nbins = cms.int32 ( 15),
   xmin  = cms.double(  0),
-  xmax  = cms.double( 50),
+  xmax  = cms.double( 60),
 )
 
 hltBPHmonitoring.histoPSet.cosPSet = cms.PSet(
-  nbins = cms.int32 ( 20),
-  xmin  = cms.double(  0.8),
+  nbins = cms.int32 ( 10),
+  xmin  = cms.double(  0.9),
   xmax  = cms.double(1),
 )
 hltBPHmonitoring.histoPSet.probPSet = cms.PSet(
-  nbins = cms.int32 ( 40),
+  nbins = cms.int32 ( 10),
   xmin  = cms.double(  0),
   xmax  = cms.double(1),
 )
@@ -107,4 +111,4 @@ hltBPHmonitoring.denGenericTriggerEventPSet.hltPaths  = cms.vstring( "HLT_Mu7p5_
 hltBPHmonitoring.denGenericTriggerEventPSet.andOrDcs      = cms.bool( False )
 hltBPHmonitoring.denGenericTriggerEventPSet.errorReplyDcs = cms.bool( True )
 hltBPHmonitoring.denGenericTriggerEventPSet.verbosityLevel = cms.uint32(0)
-
+hltBPHmonitoring.verbosityLevel = cms.uint32(0)
