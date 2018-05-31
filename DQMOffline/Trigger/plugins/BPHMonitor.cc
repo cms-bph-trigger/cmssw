@@ -1180,7 +1180,7 @@ int BPHMonitor::Prescale(const std::string  hltpath1, const std::string  hltpath
   PrescaleHLT_den = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).second;
   PrescaleHLT_num = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).second;
   HLTP =PrescaleHLT_num/std::__gcd(PrescaleHLT_num, PrescaleHLT_den);
-
+  std::cout<<"PrescaleHLT_num"<<PrescaleHLT_num<<"; PrescaleHLT_den = "<<PrescaleHLT_den<<std::endl;
 //
 //retrieving L1 prescale
 //Checking if we have the same l1 seeds in den and num taking into account that they can be written in different order in num and den and some of them can be also switched off
@@ -1274,6 +1274,7 @@ int BPHMonitor::Prescale(const std::string  hltpath1, const std::string  hltpath
     L1P = Prescale_num;
   }    
   TotalPrescale = (int)(L1P*HLTP + 0.5);
+  std::cout<<"L1P="<<L1P<<"; HLTP= "<<HLTP<<"total = "<<TotalPrescale<<std::endl;
   return TotalPrescale;
 }
 
