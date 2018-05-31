@@ -298,25 +298,6 @@ Dimuon18_PsiPrime_dRcut.histoPSet.massPSet = cms.PSet(
   xmax  = cms.double(3.9),
 )
 
-
-Dimuon12_Upsilon_dRcut = hltBPHmonitoring.clone()
-Dimuon12_Upsilon_dRcut.FolderName = cms.string('HLT/BPH/DiMu12_Upsilon_L1_dR/')
-Dimuon12_Upsilon_dRcut.tnp = cms.bool(False)
-Dimuon12_Upsilon_dRcut.enum = cms.int32(4)
-Dimuon12_Upsilon_dRcut.Upsilon = cms.int32(1)
-Dimuon12_Upsilon_dRcut.numGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_Dimuon12_Upsilon_y1p4_v*")
-#Dimuon12_Upsilon_dRcut.numGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu0er1p5_SQ_OS_dR_1p4")
-Dimuon12_Upsilon_dRcut.denGenericTriggerEventPSet.hltPaths = cms.vstring("HLT_Dimuon0_LowMass_L1_0er1p5_v*")
-#Dimuon12_Upsilon_dRcut.denGenericTriggerEventPSet.l1Algorithms = cms.vstring("L1_DoubleMu0er1p5_SQ_OS")
-Dimuon12_Upsilon_dRcut.muoSelection_ref = cms.string("abs(eta)<1.5 &  isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits>0 ")
-Dimuon12_Upsilon_dRcut.DMSelection_ref = cms.string("Pt>13 & abs(Eta)<1.5")
-Dimuon12_Upsilon_dRcut.histoPSet.massPSet = cms.PSet(
-  nbins = cms.int32 ( 24),
-  xmin  = cms.double(8.8),
-  xmax  = cms.double(10),
-)
-
-
 Dimuon0_Upsilon_masscut = hltBPHmonitoring.clone()
 Dimuon0_Upsilon_masscut.FolderName = cms.string('HLT/BPH/DiMu0_Upsilon_L1_masscut/')
 Dimuon0_Upsilon_masscut.tnp = cms.bool(False)
@@ -729,7 +710,6 @@ bphHLTmonitoring = cms.Sequence(
     + DMu4_PsiPrimeTrk_Displaced_dRcut
     + Dimuon25_Jpsi_dRcut
     + Dimuon18_PsiPrime_dRcut
-    + Dimuon12_Upsilon_dRcut
     + Dimuon25_Jpsi_dRcut_low
     + Dimuon18_Jpsi_dRcut_low
     + DMu4_PsiPrimeTrk_Displaced_dRcut_low
