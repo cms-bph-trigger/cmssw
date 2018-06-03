@@ -42,9 +42,9 @@ hltBPHmonitoring.histoPSet.z0PSet = cms.PSet(
 )
 
 hltBPHmonitoring.histoPSet.dRPSet = cms.PSet(
-  nbins = cms.int32 (  16 ),
+  nbins = cms.int32 (  26 ),
   xmin  = cms.double(   0),
-  xmax  = cms.double(0.8),
+  xmax  = cms.double(1.3),
 )
 
 hltBPHmonitoring.histoPSet.massPSet = cms.PSet(
@@ -69,11 +69,23 @@ hltBPHmonitoring.histoPSet.cosPSet = cms.PSet(
   xmin  = cms.double(  0.9),
   xmax  = cms.double(1),
 )
+
+#trying to apply log scale for probability hists
+binsLogX_vtxProb = []
+nBinsLogX_vtxProb = 100
+powerLo_vtxProb = -1
+powerHi_vtxProb = 0
+binPowerWidth_vtxProb = (powerHi_vtxProb - powerLo_vtxProb) / nBinsLogX_vtxProb
+for ibin in range(nBinsLogX_vtxProb + 1):
+    binsLogX_vtxProb.append( pow(10, powerLo_vtxProb + ibin * binPowerWidth_vtxProb) )
 hltBPHmonitoring.histoPSet.probPSet = cms.PSet(
-  nbins = cms.int32 ( 10),
-  xmin  = cms.double(  0),
-  xmax  = cms.double(1),
+    edges =cms.vdouble(binsLogX_vtxProb)
 )
+#hltBPHmonitoring.histoPSet.probPSet = cms.PSet(
+#  nbins = cms.int32 ( 10),
+#  xmin  = cms.double(  0),
+#  xmax  = cms.double(1),
+#)
 
 hltBPHmonitoring.tracks       = cms.InputTag("generalTracks") # tracks??
 hltBPHmonitoring.offlinePVs      = cms.InputTag("offlinePrimaryVertices") # PVs
