@@ -39,6 +39,7 @@ BPHMonitor::BPHMonitor( const edm::ParameterSet& iConfig ) :
   , nmuons_ ( iConfig.getParameter<int>("nmuons" ) )
   , tnp_ ( iConfig.getParameter<bool>("tnp" ) )
   , L3_ ( iConfig.getParameter<int>("L3" ) )
+  , ptCut_ ( iConfig.getParameter<int>("ptCut" ) )
   , trOrMu_ ( iConfig.getParameter<int>("trOrMu" ) )
   , Jpsi_ ( iConfig.getParameter<int>("Jpsi" ) )
   , Upsilon_ ( iConfig.getParameter<int>("Upsilon" ) ) // if ==1 path with Upsilon constraint
@@ -424,7 +425,15 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
       for (auto const & m1 : *muoHandle ) {
         if (&m - &(*muoHandle)[0]  >=  &m1 - &(*muoHandle)[0]) continue;
         if (m1.pt() == m.pt()) continue; // probably not needed if using the above check
-	if (!muoSelection_ref(m1)) continue; 
+	if (ptCut_)
+  {
+    if (!muoSelection_(m1)) continue; 
+  }
+  else
+  {
+    if (!muoSelection_ref(m1)) continue;
+  } 
+
 	if ( !matchToTrigger(hltpath,m1))continue;
 	if (enum_ != 10) {
 	  if (!DMSelection_ref(m1.p4() + m.p4())) continue;
@@ -514,7 +523,6 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
     	    {
     	      if( !matchToTrigger(hltpath1,m1))continue;
     	      if( !matchToTrigger(hltpath1,m))continue;
-            PrescaleWeight = 1;
     	      mu1Eta_.numerator->Fill(m.eta(),PrescaleWeight);
     	      mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
     	      mu2Eta_.numerator->Fill(m1.eta(),PrescaleWeight);
@@ -524,9 +532,8 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 
         case 4:
           if (dimuonCL<minprob) continue;
-          if (reco::deltaR(m,m1)>max_dR) continue;
           DiMuMass_.denominator ->Fill(DiMuMass);
-          if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) && muoSelection_ref(m1))
+          if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup))
     	    {
     	      if (seagull_ && ((m.charge()* deltaPhi(m.phi(), m1.phi())) > 0.) ) continue;
     	      if( !matchToTrigger(hltpath1,m1))continue;          
@@ -965,7 +972,7 @@ void BPHMonitor::fillDescriptions(edm::ConfigurationDescriptions & descriptions)
   desc.add<edm::InputTag>( "beamSpot",edm::InputTag("offlineBeamSpot") );
   desc.add<edm::InputTag>( "muons", edm::InputTag("muons") );
   desc.add<edm::InputTag>( "hltTriggerSummaryAOD", edm::InputTag("hltTriggerSummaryAOD","","HLT") );
-  desc.add<std::string>("muoSelection", "abs(eta)<1.4 & isPFMuon & isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits> 0");
+  desc.add<std::string>("muoSelection", "");
   desc.add<std::string>("muoSelection_ref", "isPFMuon & isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits> 0");
   desc.add<std::string>("muoSelection_tag",  "isGlobalMuon && isPFMuon && isTrackerMuon && abs(eta) < 2.4 && innerTrack.hitPattern.numberOfValidPixelHits > 0 && innerTrack.hitPattern.trackerLayersWithMeasurement > 5 && globalTrack.hitPattern.numberOfValidMuonHits > 0 && globalTrack.normalizedChi2 < 10"); // tight selection for tag muon
   desc.add<std::string>("muoSelection_probe", "isPFMuon & isGlobalMuon  & innerTrack.hitPattern.trackerLayersWithMeasurement>5 & innerTrack.hitPattern.numberOfValidPixelHits> 0");
@@ -975,11 +982,12 @@ void BPHMonitor::fillDescriptions(edm::ConfigurationDescriptions & descriptions)
   desc.add<int>("nmuons", 1);
   desc.add<bool>( "tnp", false );
   desc.add<int>( "L3", 0 );
+  desc.add<int>( "ptCut", 0 );
   desc.add<int>( "trOrMu", 0 ); // if =0, track param monitoring
   desc.add<int>( "Jpsi", 0 );
   desc.add<int>( "Upsilon", 0 );
   desc.add<int>( "enum", 1 ); // 1...9, 9 sets of variables to be filled, depends on the hlt path
-  desc.add<int>( "seagull", 1 ); // 1...9, 9 sets of variables to be filled, depends on the hlt path
+  desc.add<int>( "seagull", 1 ); 
   desc.add<double>( "maxmass", 3.596 );
   desc.add<double>( "minmass", 2.596 );
   desc.add<double>( "maxmassJpsi", 3.2 );

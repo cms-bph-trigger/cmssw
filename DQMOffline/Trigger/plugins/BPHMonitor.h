@@ -177,6 +177,7 @@ private:
   int nmuons_;
   bool tnp_;
   int L3_;
+  int ptCut_;
   int trOrMu_;
   int Jpsi_;
   int Upsilon_;
