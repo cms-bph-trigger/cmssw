@@ -24,6 +24,7 @@ BPHMonitor::BPHMonitor( const edm::ParameterSet& iConfig ) :
   , z0_binning_ ( getHistoPSet (iConfig.getParameter<edm::ParameterSet>("histoPSet").getParameter<edm::ParameterSet> ("z0PSet") ) )
   , dR_binning_ ( getHistoPSet (iConfig.getParameter<edm::ParameterSet>("histoPSet").getParameter<edm::ParameterSet> ("dRPSet") ) )
   , mass_binning_ ( getHistoPSet (iConfig.getParameter<edm::ParameterSet>("histoPSet").getParameter<edm::ParameterSet> ("massPSet") ) )
+  , Bmass_binning_ ( getHistoPSet (iConfig.getParameter<edm::ParameterSet>("histoPSet").getParameter<edm::ParameterSet> ("BmassPSet") ) )
   , dca_binning_ ( getHistoPSet (iConfig.getParameter<edm::ParameterSet>("histoPSet").getParameter<edm::ParameterSet> ("dcaPSet") ) )
   , ds_binning_ ( getHistoPSet (iConfig.getParameter<edm::ParameterSet>("histoPSet").getParameter<edm::ParameterSet> ("dsPSet") ) )
   , cos_binning_ ( getHistoPSet (iConfig.getParameter<edm::ParameterSet>("histoPSet").getParameter<edm::ParameterSet> ("cosPSet") ) )
@@ -127,6 +128,8 @@ BPHMonitor::BPHMonitor( const edm::ParameterSet& iConfig ) :
   DiMuDCA_.denominator = nullptr;
   DiMuMass_.numerator = nullptr;
   DiMuMass_.denominator = nullptr;
+  BMass_.numerator = nullptr;
+  BMass_.denominator = nullptr;
   DiMudR_.numerator = nullptr;
   DiMudR_.denominator = nullptr;
 
@@ -244,7 +247,14 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
     histname = trMuPh+"Eta"; histtitle = trMuPh+"_Eta";
     bookME(ibooker,muEta_,histname,histtitle, eta_binning_);
     setMETitle(muEta_,trMuPh+"_#eta","events / 0.2");
+    
+    if (enum_ ==9)
+    {
+      histname = "BMass"; histtitle = "BMass";
+      bookME(ibooker,BMass_,histname,histtitle, Bmass_binning_);
+      setMETitle(BMass_,"B_#mass","events /");
 
+    }
   }
   else {
     if (enum_ !=8)
@@ -272,7 +282,13 @@ void BPHMonitor::bookHistograms(DQMStore::IBooker     & ibooker,
     histname = trMuPh+"2Eta"; histtitle = trMuPh+"2_Eta";
     bookME(ibooker,mu2Eta_,histname,histtitle, eta_binning_);
     setMETitle(mu2Eta_,trMuPh+"_#eta","events / 0.2");
-  
+    if (enum_ ==11)
+    {
+      histname = "BMass"; histtitle = "BMass";
+      bookME(ibooker,BMass_,histname,histtitle, Bmass_binning_);
+      setMETitle(BMass_,"B_#mass","events /");
+
+    }
 
     }
     if (enum_ == 6) {
@@ -362,6 +378,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
   edm::Handle<reco::MuonCollection> muoHandle;
   iEvent.getByToken( muoToken_, muoHandle );
 
+
   edm::Handle<reco::TrackCollection> trHandle;
   iEvent.getByToken( trToken_, trHandle );
 
@@ -424,7 +441,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
       if (!muoSelection_ref(m)) continue; 
       for (auto const & m1 : *muoHandle ) {
         if (&m - &(*muoHandle)[0]  >=  &m1 - &(*muoHandle)[0]) continue;
-        if (m1.pt() == m.pt()) continue; // probably not needed if using the above check
+        if (!(m1.pt() > m.pt())) continue; //to get rid of double counting
 	if (ptCut_)
   {
     if (!muoSelection_(m1)) continue; 
@@ -504,7 +521,9 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
     	      DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt() ,PrescaleWeight);
     	      DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta() ,PrescaleWeight);
     	      DiMuPhi_.numerator ->Fill((m1.p4()+m.p4()).Phi(),PrescaleWeight);
+            
     	    }
+          
           break;
 
         case 3:
@@ -515,19 +534,25 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
             if (DiMuMass> maxmassUpsilon || DiMuMass< minmassUpsilon) continue;
           }
           if (dimuonCL<minprob) continue;
+          mu1Phi_.denominator->Fill(m.phi());
           mu1Eta_.denominator->Fill(m.eta());
           mu1Pt_.denominator ->Fill(m.pt());
+          mu2Phi_.denominator->Fill(m1.phi());
           mu2Eta_.denominator->Fill(m1.eta());
           mu2Pt_.denominator ->Fill(m1.pt());
           if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
     	    {
     	      if( !matchToTrigger(hltpath1,m1))continue;
     	      if( !matchToTrigger(hltpath1,m))continue;
+    	      mu1Phi_.numerator->Fill(m.phi(),PrescaleWeight);
     	      mu1Eta_.numerator->Fill(m.eta(),PrescaleWeight);
     	      mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
+    	      mu2Phi_.numerator->Fill(m1.phi(),PrescaleWeight);
     	      mu2Eta_.numerator->Fill(m1.eta(),PrescaleWeight);
     	      mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
+            
     	    }
+          
           break; 
 
         case 4:
@@ -571,7 +596,9 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
     	      DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta() ,PrescaleWeight);
     	      DiMuPhi_.numerator ->Fill((m1.p4()+m.p4()).Phi(),PrescaleWeight);
     	      DiMudR_.numerator ->Fill(reco::deltaR(m,m1),PrescaleWeight);
+            
     	    }
+          
           break;
 
         case 5:
@@ -608,8 +635,9 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
     	      DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta() ,PrescaleWeight);
     	      DiMuPhi_.numerator ->Fill((m1.p4()+m.p4()).Phi(),PrescaleWeight);
     	      DiMudR_.numerator ->Fill(reco::deltaR(m,m1),PrescaleWeight);
+            
     	    }      
-
+          
           break;
 
         case 6: 
@@ -646,9 +674,10 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           		mu3Phi_.numerator->Fill(m2.phi(),PrescaleWeight);
           		mu3Eta_.numerator->Fill(m2.eta(),PrescaleWeight);
           		mu3Pt_.numerator ->Fill(m2.pt(),PrescaleWeight);
-    
+               
     	      }
-          }      
+            
+            } 
           break;    
   
         case 7:// the hists for photon monitoring will be filled on 515 line
@@ -668,8 +697,9 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
         		      phPhi_.numerator->Fill(p.phi(),PrescaleWeight);
         		      phEta_.numerator->Fill(p.eta(),PrescaleWeight);
         		      phPt_.numerator ->Fill(p.pt(),PrescaleWeight);
-        
+                  
         		  }
+              
         		}
     	    } 
           break;
@@ -696,6 +726,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
               DiMuPVcos_.denominator ->Fill(jpsi_cos );
               DiMuPt_.denominator ->Fill((m1.p4()+m.p4()).Pt() );
               DiMuEta_.denominator ->Fill((m1.p4()+m.p4()).Eta() );
+              DiMuPhi_.denominator ->Fill((m1.p4()+m.p4()).Phi() );
               DiMuDCA_.denominator ->Fill( cApp.distance());
               if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
         	    {
@@ -705,9 +736,11 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
         	      DiMuPVcos_.numerator ->Fill(jpsi_cos ,PrescaleWeight);
         	      DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt() ,PrescaleWeight);
         	      DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta() ,PrescaleWeight);
+        	      DiMuPhi_.numerator ->Fill((m1.p4()+m.p4()).Phi() ,PrescaleWeight);
         	      DiMuDCA_.numerator ->Fill( cApp.distance(),PrescaleWeight);
-        
+                
         	    }          
+              
               break;
 
       	case 9:
@@ -764,6 +797,8 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           		muPhi_.denominator->Fill(t.phi());
           		muEta_.denominator->Fill(t.eta());
           		muPt_.denominator ->Fill(t.pt());
+          		BMass_.denominator ->Fill(pB.mass());
+                
           		if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
               {
           		    if( !matchToTrigger(hltpath1,m1))continue;
@@ -776,7 +811,10 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           		    muPhi_.numerator->Fill(t.phi(),PrescaleWeight);
           		    muEta_.numerator->Fill(t.eta(),PrescaleWeight);
           		    muPt_.numerator ->Fill(t.pt(),PrescaleWeight);
+          		    BMass_.numerator ->Fill(pB.mass(),PrescaleWeight);
+                  
           	  }   
+              
   	        }
   	      }
     	  break;
@@ -838,8 +876,9 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
     		  muPhi_.numerator->Fill(m1.phi(),PrescaleWeight);
     		  muEta_.numerator->Fill(m1.eta(),PrescaleWeight);
     		  muPt_.numerator ->Fill(m1.pt(),PrescaleWeight);
-    	    
+              	    
     		}
+        
 	    }
 	  }
   	break;
@@ -916,6 +955,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
       		mu2Phi_.denominator->Fill(t1.phi());
       		mu2Eta_.denominator->Fill(t1.eta());
       		mu2Pt_.denominator ->Fill(t1.pt());
+          BMass_.denominator ->Fill(pB.mass());
       
       		if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
     		  {
@@ -937,7 +977,10 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
       		  mu2Phi_.numerator->Fill(t1.phi(),PrescaleWeight);
       		  mu2Eta_.numerator->Fill(t1.eta(),PrescaleWeight);
       		  mu2Pt_.numerator ->Fill(t1.pt(),PrescaleWeight);
+      		  BMass_.numerator ->Fill(pB.mass(),PrescaleWeight);
+            
      		  }
+          
  	      } // for (auto const & t1 : *trHandle)
  	    } // for (auto const & t : *trHandle)
    	  } // if (trHandle.isValid())
@@ -1042,6 +1085,7 @@ void BPHMonitor::fillDescriptions(edm::ConfigurationDescriptions & descriptions)
   edm::ParameterSetDescription z0PSet;
   edm::ParameterSetDescription dRPSet;
   edm::ParameterSetDescription massPSet;
+  edm::ParameterSetDescription BmassPSet;
   edm::ParameterSetDescription dcaPSet;
   edm::ParameterSetDescription dsPSet;
   edm::ParameterSetDescription cosPSet;
@@ -1056,6 +1100,7 @@ void BPHMonitor::fillDescriptions(edm::ConfigurationDescriptions & descriptions)
   fillHistoPSetDescription(d0PSet);
   fillHistoPSetDescription(dRPSet);
   fillHistoPSetDescription(massPSet);
+  fillHistoPSetDescription(BmassPSet);
   fillHistoPSetDescription(dcaPSet);
   fillHistoPSetDescription(dsPSet);
   fillHistoPSetDescription(cosPSet);
@@ -1068,6 +1113,7 @@ void BPHMonitor::fillDescriptions(edm::ConfigurationDescriptions & descriptions)
   histoPSet.add<edm::ParameterSetDescription>("z0PSet", z0PSet);
   histoPSet.add<edm::ParameterSetDescription>("dRPSet", dRPSet);
   histoPSet.add<edm::ParameterSetDescription>("massPSet", massPSet);
+  histoPSet.add<edm::ParameterSetDescription>("BmassPSet", BmassPSet);
   histoPSet.add<edm::ParameterSetDescription>("dcaPSet", dcaPSet);
   histoPSet.add<edm::ParameterSetDescription>("dsPSet", dsPSet);
   histoPSet.add<edm::ParameterSetDescription>("cosPSet", cosPSet);

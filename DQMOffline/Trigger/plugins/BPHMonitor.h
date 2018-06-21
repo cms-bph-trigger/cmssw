@@ -122,6 +122,7 @@ private:
   MEbinning           z0_binning_;
   MEbinning           dR_binning_;
   MEbinning           mass_binning_;
+  MEbinning           Bmass_binning_;
   MEbinning           dca_binning_;
   MEbinning           ds_binning_;
   MEbinning           cos_binning_;
@@ -162,6 +163,7 @@ private:
   METME  DiMuDS_   ;
   METME  DiMuDCA_   ;
   METME  DiMuMass_   ;
+  METME  BMass_   ;
   METME  DiMudR_   ;
 
   unsigned int verbosity_;
