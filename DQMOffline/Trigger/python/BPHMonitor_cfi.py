@@ -53,6 +53,12 @@ hltBPHmonitoring.histoPSet.massPSet = cms.PSet(
   xmin  = cms.double(  0),
   xmax  = cms.double(7.),
 )
+hltBPHmonitoring.histoPSet.BmassPSet = cms.PSet(
+  nbins = cms.int32 ( 20 ),
+  xmin  = cms.double(5.1),
+  xmax  = cms.double(5.5),
+)
+
 hltBPHmonitoring.histoPSet.dcaPSet = cms.PSet(
   nbins = cms.int32 ( 10 ),
   xmin  = cms.double(  0),

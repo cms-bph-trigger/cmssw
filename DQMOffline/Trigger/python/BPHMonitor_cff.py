@@ -698,16 +698,16 @@ bphHLTmonitoring = cms.Sequence(
     + DMu4_3_Bs_dRcut
     + DMu4_3_Jpsi_dRcut
     + Dimuon14_Phi_dRcut
-    + DMu4_LowMassNonResonantTrk_Displaced_dRcut
-    + DMu4_JpsiTrk_Displaced_dRcut
-    + DMu4_PsiPrimeTrk_Displaced_dRcut
+#    + DMu4_LowMassNonResonantTrk_Displaced_dRcut
+#    + DMu4_JpsiTrk_Displaced_dRcut
+#    + DMu4_PsiPrimeTrk_Displaced_dRcut
     + Dimuon25_Jpsi_dRcut
     + Dimuon18_PsiPrime_dRcut
     + Dimuon25_Jpsi_dRcut_low
     + Dimuon18_PsiPrime_dRcut_low
-    + DMu4_PsiPrimeTrk_Displaced_dRcut_low
-    + DMu4_JpsiTrk_Displaced_dRcut_low
-    + DMu4_LowMassNonResonantTrk_Displaced_dRcut_low
+#    + DMu4_PsiPrimeTrk_Displaced_dRcut_low
+#    + DMu4_JpsiTrk_Displaced_dRcut_low
+#    + DMu4_LowMassNonResonantTrk_Displaced_dRcut_low
     + Dimuon20_masscut1
     + Dimuon12_masscut2
     + Trimuon2_masscut4
