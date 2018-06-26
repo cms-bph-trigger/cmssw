@@ -15,6 +15,7 @@ hltBPHmonitoring.Upsilon = cms.int32(0)
 hltBPHmonitoring.Jpsi = cms.int32(0)
 hltBPHmonitoring.seagull = cms.int32(0)
 hltBPHmonitoring.ptCut = cms.int32(0)
+hltBPHmonitoring.displaced = cms.int32(0)
 hltBPHmonitoring.histoPSet.ptPSet = cms.PSet(
     edges = cms.vdouble(-0.5, 0, 2, 4, 8, 10, 12, 16, 20, 25, 30, 35, 40, 50),
 )

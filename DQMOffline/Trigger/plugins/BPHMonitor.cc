@@ -41,6 +41,7 @@ BPHMonitor::BPHMonitor( const edm::ParameterSet& iConfig ) :
   , tnp_ ( iConfig.getParameter<bool>("tnp" ) )
   , L3_ ( iConfig.getParameter<int>("L3" ) )
   , ptCut_ ( iConfig.getParameter<int>("ptCut" ) )
+  , displaced_ ( iConfig.getParameter<int>("displaced" ) )
   , trOrMu_ ( iConfig.getParameter<int>("trOrMu" ) )
   , Jpsi_ ( iConfig.getParameter<int>("Jpsi" ) )
   , Upsilon_ ( iConfig.getParameter<int>("Upsilon" ) ) // if ==1 path with Upsilon constraint
@@ -486,6 +487,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
         if (mu1TS.isValid() && mu2TS.isValid()) {
           cApp.calculate(mu1TS.theState(), mu2TS.theState());
         }
+        if (!cApp.calculate(mu1TS.theState(), mu2TS.theState()))continue;
         double DiMuMass = (m1.p4()+m.p4()).M();
         switch(enum_) { // enum_ = 1...9, represents different sets of variables for different paths, we want to have different hists for different paths
 
@@ -705,6 +707,11 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           break;
           
         case 8://vtx monitoring, filling probability, DS, DCA, cos of pointing angle to the PV, eta, pT of dimuon
+              if (displaced_)
+              {
+                if ((displacementFromBeamspotJpsi.perp()/sqrt(jerr.rerr(displacementFromBeamspotJpsi)))<minDS) continue;
+
+              }
               if ((Jpsi_) && (!Upsilon_)){
                 if (DiMuMass> maxmassJpsi || DiMuMass< minmassJpsi) continue;
               }
@@ -1026,6 +1033,7 @@ void BPHMonitor::fillDescriptions(edm::ConfigurationDescriptions & descriptions)
   desc.add<bool>( "tnp", false );
   desc.add<int>( "L3", 0 );
   desc.add<int>( "ptCut", 0 );
+  desc.add<int>( "displaced", 0 );
   desc.add<int>( "trOrMu", 0 ); // if =0, track param monitoring
   desc.add<int>( "Jpsi", 0 );
   desc.add<int>( "Upsilon", 0 );

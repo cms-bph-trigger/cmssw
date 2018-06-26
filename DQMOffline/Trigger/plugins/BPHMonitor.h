@@ -180,6 +180,7 @@ private:
   bool tnp_;
   int L3_;
   int ptCut_;
+  int displaced_;
   int trOrMu_;
   int Jpsi_;
   int Upsilon_;
