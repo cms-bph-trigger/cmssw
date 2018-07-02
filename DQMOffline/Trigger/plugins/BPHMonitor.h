@@ -172,6 +172,14 @@ private:
   GenericTriggerEventFlag* num_genTriggerEventFlag_;
   GenericTriggerEventFlag* den_genTriggerEventFlag_;
   HLTPrescaleProvider* hltPrescale_;
+  StringCutObjectSelector<reco::Muon,true>        muPt;
+  StringCutObjectSelector<reco::Muon,true>        muEta;
+  StringCutObjectSelector<reco::Track,true>        tkPt;
+  StringCutObjectSelector<reco::Track,true>        tkEta;
+  StringCutObjectSelector<reco::Candidate::LorentzVector,true>        dMuEta;
+  StringCutObjectSelector<reco::Candidate::LorentzVector,true>        dMuPt;
+  StringCutObjectSelector<reco::Candidate::LorentzVector,true>        dMuMass;
+  StringCutObjectSelector<reco::Muon,true>        muQual;
   StringCutObjectSelector<reco::Muon,true>        muoSelection_;
   StringCutObjectSelector<reco::Muon,true>        muoSelection_ref;
   StringCutObjectSelector<reco::Muon,true>        muoSelection_tag;
@@ -179,7 +187,7 @@ private:
   int nmuons_;
   bool tnp_;
   int L3_;
-  int ptCut_;
+  double ptCut_;
   int displaced_;
   int trOrMu_;
   int Jpsi_;
