@@ -404,16 +404,18 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
   int PrescaleWeight =1;
   const std::string & hltpath = getTriggerName(hltpaths_den[0]);
   const std::string & hltpath1 = getTriggerName(hltpaths_num[0]);
+  bool NumPassed = false;
+  bool DenPassed = false;
+  if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup)) NumPassed = true;
+  if (den_genTriggerEventFlag_->on() && ! den_genTriggerEventFlag_->accept( iEvent, iSetup)) DenPassed = true;
 
-
-
-  if (den_genTriggerEventFlag_->on() &&  den_genTriggerEventFlag_->accept( iEvent, iSetup) && num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) ) 
+  if (DenPassed && NumPassed ) 
   {
     PrescaleWeight = Prescale(hltpath1, hltpath, iEvent, iSetup, hltPrescale_);
 
   }
   if (tnp_>0) {//TnP method 
-    if (den_genTriggerEventFlag_->on() && ! den_genTriggerEventFlag_->accept( iEvent, iSetup) ) return;
+    if (!DenPassed) return;
     iEvent.getByToken( hltInputTag_, handleTriggerEvent);
     if (handleTriggerEvent->sizeFilters()== 0) return;
     std::vector<reco::Muon> tagMuons;
@@ -442,13 +444,14 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 
   }  
   else { // reference method
-    if (den_genTriggerEventFlag_->on() && ! den_genTriggerEventFlag_->accept( iEvent, iSetup) ) return;
+    if (!DenPassed) return;
     iEvent.getByToken( hltInputTag_, handleTriggerEvent);
     if (handleTriggerEvent->sizeFilters()== 0) return;
     for (auto const & m : *muoHandle ) {
       if ( !matchToTrigger(hltpath,m))continue;
       if (!muQual(m)) continue; 
       for (auto const & m1 : *muoHandle ) {
+      if ( !matchToTrigger(hltpath,m1))continue;
       if (!muQual(m1)) continue; 
         if (!(m1.pt() > m.pt())) continue; //to get rid of double counting
 	iSetup.get<IdealMagneticFieldRecord>().get(bFieldHandle);
@@ -486,6 +489,18 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
 
         double DiMuMass = (m1.p4()+m.p4()).M();
         bool detach=true;
+        bool matched1 = false;
+        bool matched2 = false;
+        bool NumPassed = false;
+        if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+        {
+          NumPassed = true;        
+          matched1 = matchToTrigger(hltpath1,m);//false;
+          matched2 = matchToTrigger(hltpath1,m1);//false;
+        }
+//        matched1 = matched1;
+//        bool matched2 = false;
+//        matched2 = matched2;
         switch(enum_) { // enum_ = 1...9, represents different sets of variables for different paths, we want to have different hists for different paths
 
         case 1: tnp_=true; // already filled hists for tnp method
@@ -501,52 +516,52 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           if ( muPt(m1) && muEta(m) && muEta(m1) && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) ) 
           {
             mu1Pt_.denominator ->Fill(m.pt());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
+              if(matched2 && matched1) mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
             }
           }
           if ( muPt(m) && muEta(m) && muEta(m1) && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) )
           {
             mu2Pt_.denominator ->Fill(m1.pt());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
+              if(matched2 && matched1) mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
             }
 
           }
           if ( muPt(m) && muPt(m1) && muEta(m1) && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) )
           {
             mu1Eta_.denominator->Fill(m.eta());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) mu1Eta_.numerator ->Fill(m.eta(),PrescaleWeight);
+              if(matched2 && matched1) mu1Eta_.numerator ->Fill(m.eta(),PrescaleWeight);
             }
 
           }
           if ( muPt(m) && muPt(m1) && muEta(m) && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) )
           {
             mu2Eta_.denominator->Fill(m1.eta());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) mu2Eta_.numerator ->Fill(m1.eta(),PrescaleWeight);
+              if(matched2 && matched1) mu2Eta_.numerator ->Fill(m1.eta(),PrescaleWeight);
             }
 
           } 
           if ( muPt(m) && muPt(m1) && muEta(m) && muEta(m1) && dMuEta(m1.p4()+m.p4()) )
           {
             DiMuPt_.denominator ->Fill((m1.p4()+m.p4()).Pt() );
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt(),PrescaleWeight);
+              if(matched2 && matched1) DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt(),PrescaleWeight);
             }
           } 
           if ( muPt(m) && muPt(m1) && muEta(m) && muEta(m1) && dMuPt(m1.p4()+m.p4())  )
           {
             DiMuEta_.denominator ->Fill((m1.p4()+m.p4()).Eta() );
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta(),PrescaleWeight);
+              if(matched2 && matched1) DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta(),PrescaleWeight);
             }
 
           }
@@ -555,9 +570,9 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
             mu1Phi_.denominator->Fill(m.phi());
             mu2Phi_.denominator->Fill(m1.phi());
             DiMuPhi_.denominator ->Fill((m1.p4()+m.p4()).Phi());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) 
+              if(matched2 && matched1) 
               {
                 mu1Phi_.numerator->Fill(m.phi(),PrescaleWeight);
                 mu2Phi_.numerator->Fill(m1.phi(),PrescaleWeight);
@@ -579,43 +594,43 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           if ( muPt(m1) && muEta(m) && muEta(m1) && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) )
           {
             mu1Pt_.denominator ->Fill(m.pt());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
+              if(matched2 && matched1) mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
             }
           }
           if ( muPt(m) && muEta(m) && muEta(m1) && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) )
           {
             mu2Pt_.denominator ->Fill(m1.pt());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
+              if(matched2 && matched1) mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
             }
 
           }
           if ( muPt(m) && muPt(m1) && muEta(m1) && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) )
           {
             mu1Eta_.denominator->Fill(m.eta());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) mu1Eta_.numerator ->Fill(m.eta(),PrescaleWeight);
+              if(matched2 && matched1) mu1Eta_.numerator ->Fill(m.eta(),PrescaleWeight);
             }
           }
           if ( muPt(m) && muPt(m1) && muEta(m) && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) )
           {
             mu2Eta_.denominator->Fill(m1.eta());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) mu2Eta_.numerator ->Fill(m1.eta(),PrescaleWeight);
+              if(matched2 && matched1) mu2Eta_.numerator ->Fill(m1.eta(),PrescaleWeight);
             }
           }
           if ( muPt(m) && muPt(m1) && muEta(m) && muEta(m1) && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) )
           {
             mu1Phi_.denominator->Fill(m.phi());
             mu2Phi_.denominator->Fill(m1.phi());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m))
+              if(matched2 && matched1)
               {
                 mu1Phi_.numerator->Fill(m.phi(),PrescaleWeight);
                 mu2Phi_.numerator->Fill(m1.phi(),PrescaleWeight);
@@ -631,11 +646,11 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           if ( muPt(m) && muPt(m1) && (m1.pt()>ptCut_) && muEta(m) && muEta(m1) && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) )
           {
             DiMuMass_.denominator ->Fill(DiMuMass);
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup))
+            if (NumPassed)
       	    {
       	      if (seagull_ && ((m.charge()* deltaPhi(m.phi(), m1.phi())) > 0.) ) continue;
-      	      if( !matchToTrigger(hltpath1,m1))continue;          
-      	      if( !matchToTrigger(hltpath1,m))continue;          
+      	      if( !matched2)continue;          
+      	      if( !matched1)continue;          
       	      DiMuMass_.numerator ->Fill(DiMuMass, PrescaleWeight);      
       	    }
           }
@@ -649,53 +664,53 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           if ( muPt(m1) && (m1.pt()>ptCut_) && muEta(m) && muEta(m1) && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) && dMuMass(m1.p4()+m.p4())) 
           {
             mu1Pt_.denominator ->Fill(m.pt());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
     	        if (seagull_ && ((m.charge()* deltaPhi(m.phi(), m1.phi())) > 0.) ) continue;
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
+              if(matched2 && matched1) mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
             }
           }
           if ( muPt(m) && muEta(m) && muEta(m1) && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) && dMuMass(m1.p4()+m.p4()))
           {
             mu2Pt_.denominator ->Fill(m1.pt());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
+              if(matched2 && matched1) mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
             }
 
           }
           if ( muPt(m) && muPt(m1) && (m1.pt()>ptCut_) && muEta(m1) && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) && dMuMass(m1.p4()+m.p4()))
           {
             mu1Eta_.denominator->Fill(m.eta());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) mu1Eta_.numerator ->Fill(m.eta(),PrescaleWeight);
+              if(matched2 && matched1) mu1Eta_.numerator ->Fill(m.eta(),PrescaleWeight);
             }
 
           }
           if ( muPt(m) && muPt(m1) && (m1.pt()>ptCut_) && muEta(m) && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) && dMuMass(m1.p4()+m.p4()))
           {
             mu2Eta_.denominator->Fill(m1.eta());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) mu2Eta_.numerator ->Fill(m1.eta(),PrescaleWeight);
+              if(matched2 && matched1) mu2Eta_.numerator ->Fill(m1.eta(),PrescaleWeight);
             }
 
           } 
           if ( muPt(m) && muPt(m1) && (m1.pt()>ptCut_) && muEta(m) && muEta(m1) && dMuEta(m1.p4()+m.p4()) && dMuMass(m1.p4()+m.p4()))
           {
             DiMuPt_.denominator ->Fill((m1.p4()+m.p4()).Pt() );
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt(),PrescaleWeight);
+              if(matched2 && matched1) DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt(),PrescaleWeight);
             }
           } 
           if ( muPt(m) && muPt(m1) && (m1.pt()>ptCut_) && muEta(m) && muEta(m1) && dMuPt(m1.p4()+m.p4()) && dMuMass(m1.p4()+m.p4()) )
           {
             DiMuEta_.denominator ->Fill((m1.p4()+m.p4()).Eta() );
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta(),PrescaleWeight);
+              if(matched2 && matched1) DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta(),PrescaleWeight);
             }
 
           }
@@ -705,9 +720,9 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
             mu2Phi_.denominator->Fill(m1.phi());
             DiMuPhi_.denominator ->Fill((m1.p4()+m.p4()).Phi());
             DiMudR_.denominator ->Fill(reco::deltaR(m,m1));
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) 
+              if(matched2 && matched1) 
               {
                 mu1Phi_.numerator->Fill(m.phi(),PrescaleWeight);
                 mu2Phi_.numerator->Fill(m1.phi(),PrescaleWeight);
@@ -735,53 +750,53 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           if ( muPt(m1) && muEta(m) && muEta(m1) && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) ) 
           {
             mu1Pt_.denominator ->Fill(m.pt());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
     	        if (seagull_ && ((m.charge()* deltaPhi(m.phi(), m1.phi())) > 0.) ) continue;
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
+              if(matched2 && matched1) mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
             }
           }
           if ( muPt(m) && muEta(m) && muEta(m1) && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) )
           {
             mu2Pt_.denominator ->Fill(m1.pt());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
+              if(matched2 && matched1) mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
             }
 
           }
           if ( muPt(m) && muPt(m1) && muEta(m1) && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) )
           {
             mu1Eta_.denominator->Fill(m.eta());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) mu1Eta_.numerator ->Fill(m.eta(),PrescaleWeight);
+              if(matched2 && matched1) mu1Eta_.numerator ->Fill(m.eta(),PrescaleWeight);
             }
 
           }
           if ( muPt(m) && muPt(m1) && muEta(m) && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) )
           {
             mu2Eta_.denominator->Fill(m1.eta());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) mu2Eta_.numerator ->Fill(m1.eta(),PrescaleWeight);
+              if(matched2 && matched1) mu2Eta_.numerator ->Fill(m1.eta(),PrescaleWeight);
             }
 
           } 
           if ( muPt(m) && muPt(m1) && muEta(m) && muEta(m1) && dMuEta(m1.p4()+m.p4()) )
           {
             DiMuPt_.denominator ->Fill((m1.p4()+m.p4()).Pt() );
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt(),PrescaleWeight);
+              if(matched2 && matched1) DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt(),PrescaleWeight);
             }
           } 
           if ( muPt(m) && muPt(m1) && muEta(m) && muEta(m1) && dMuPt(m1.p4()+m.p4())  )
           {
             DiMuEta_.denominator ->Fill((m1.p4()+m.p4()).Eta() );
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta(),PrescaleWeight);
+              if(matched2 && matched1) DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta(),PrescaleWeight);
             }
 
           }
@@ -791,9 +806,9 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
             mu2Phi_.denominator->Fill(m1.phi());
             DiMuPhi_.denominator ->Fill((m1.p4()+m.p4()).Phi());
             DiMudR_.denominator ->Fill(reco::deltaR(m,m1));
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) 
+              if(matched2 && matched1) 
               {
                 mu1Phi_.numerator->Fill(m.phi(),PrescaleWeight);
                 mu2Phi_.numerator->Fill(m1.phi(),PrescaleWeight);
@@ -823,43 +838,43 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
             if ( muPt(m1) && muEta(m) && muEta(m1) && muPt(m2) && muEta(m2)  && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) )
             {
               mu1Pt_.denominator ->Fill(m.pt());
-              if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+              if (NumPassed )
               {
-                if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m) && matchToTrigger(hltpath1,m2)) mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
+                if(matched2 && matched1 && matchToTrigger(hltpath1,m2)) mu1Pt_.numerator ->Fill(m.pt(),PrescaleWeight);
               }
             }
             if ( muPt(m) && muEta(m) && muEta(m1) && muPt(m2) && muEta(m2) && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) )
             {
               mu2Pt_.denominator ->Fill(m1.pt());
-              if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+              if (NumPassed )
               {
-                if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m) && matchToTrigger(hltpath1,m2)) mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
+                if(matched2 && matched1 && matchToTrigger(hltpath1,m2)) mu2Pt_.numerator ->Fill(m1.pt(),PrescaleWeight);
               }
   
             }
             if ( muPt(m) && muPt(m1) && muEta(m1) && muPt(m2) && muEta(m2) && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) )
             {
               mu1Eta_.denominator->Fill(m.eta());
-              if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+              if (NumPassed )
               {
-                if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m) && matchToTrigger(hltpath1,m2)) mu1Eta_.numerator ->Fill(m.eta(),PrescaleWeight);
+                if(matched2 && matched1 && matchToTrigger(hltpath1,m2)) mu1Eta_.numerator ->Fill(m.eta(),PrescaleWeight);
               }
             }
             if ( muPt(m) && muPt(m1) && muEta(m) && muPt(m2) && muEta(m2) && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) )
             {
               mu2Eta_.denominator->Fill(m1.eta());
-              if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+              if (NumPassed )
               {
-                if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m) && matchToTrigger(hltpath1,m2)) mu2Eta_.numerator ->Fill(m1.eta(),PrescaleWeight);
+                if(matched2 && matched1 && matchToTrigger(hltpath1,m2)) mu2Eta_.numerator ->Fill(m1.eta(),PrescaleWeight);
               }
             }
    
             if ( muPt(m) && muEta(m) && muPt(m1) && muEta(m1) && muEta(m2) && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) )
             {
               mu3Pt_.denominator ->Fill(m2.pt());
-              if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+              if (NumPassed )
               {
-                if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m) && matchToTrigger(hltpath1,m2)) mu3Pt_.numerator ->Fill(m2.pt(),PrescaleWeight);
+                if(matched2 && matched1 && matchToTrigger(hltpath1,m2)) mu3Pt_.numerator ->Fill(m2.pt(),PrescaleWeight);
               }
   
             }
@@ -867,9 +882,9 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
             if ( muPt(m) &&  muEta(m1) && muPt(m1) && muEta(m1) && muPt(m2) &&  dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) )
             {
               mu3Eta_.denominator->Fill(m2.eta());
-              if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+              if (NumPassed )
               {
-                if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m) && matchToTrigger(hltpath1,m2)) mu3Eta_.numerator ->Fill(m2.eta(),PrescaleWeight);
+                if(matched2 && matched1 && matchToTrigger(hltpath1,m2)) mu3Eta_.numerator ->Fill(m2.eta(),PrescaleWeight);
               }
             }
   
@@ -878,9 +893,9 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
               mu1Phi_.denominator->Fill(m.phi());
               mu2Phi_.denominator->Fill(m1.phi());
               mu3Phi_.denominator->Fill(m2.phi());
-              if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+              if (NumPassed )
               {
-                if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m) && matchToTrigger(hltpath1,m2))
+                if(matched2 && matched1 && matchToTrigger(hltpath1,m2))
                 {
                   mu1Phi_.numerator->Fill(m.phi(),PrescaleWeight);
                   mu2Phi_.numerator->Fill(m1.phi(),PrescaleWeight);
@@ -903,11 +918,11 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
         		  phPhi_.denominator->Fill(p.phi());
         		  phEta_.denominator->Fill(p.eta());
         		  phPt_.denominator ->Fill(p.pt());
-        		  if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+        		  if (NumPassed )
         		  {
         		      if( !matchToTrigger(hltpath1,p))continue;
-        		      if( !matchToTrigger(hltpath1,m))continue;
-        		      if( !matchToTrigger(hltpath1,m1))continue;
+        		      if( !matched1)continue;
+        		      if( !matched2)continue;
         		      phPhi_.numerator->Fill(p.phi(),PrescaleWeight);
         		      phEta_.numerator->Fill(p.eta(),PrescaleWeight);
         		      phPt_.numerator ->Fill(p.pt(),PrescaleWeight);
@@ -940,18 +955,18 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
               if ( jpsi_cos>mincos && dimuonCL>minprob && (detach) && dMuEta(m1.p4()+m.p4()) )
               {
                 DiMuPt_.denominator ->Fill((m1.p4()+m.p4()).Pt() );
-                if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+                if (NumPassed )
                 {
-                  if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt(),PrescaleWeight);
+                  if(matched2 && matched1) DiMuPt_.numerator ->Fill((m1.p4()+m.p4()).Pt(),PrescaleWeight);
                 }
               } 
 
               if ( jpsi_cos>mincos && dimuonCL>minprob && (detach) && dMuPt(m1.p4()+m.p4())  )
               {
                 DiMuEta_.denominator ->Fill((m1.p4()+m.p4()).Eta() );
-                if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+                if (NumPassed )
                 {
-                  if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta(),PrescaleWeight);
+                  if(matched2 && matched1) DiMuEta_.numerator ->Fill((m1.p4()+m.p4()).Eta(),PrescaleWeight);
                 }
     
               }
@@ -959,20 +974,20 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
               if ( jpsi_cos>mincos && (detach) && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) )
               { 
                 DiMuProb_.denominator ->Fill( dimuonCL);
-                if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+                if (NumPassed )
                 {
-                  if( !matchToTrigger(hltpath1,m1))continue;
-                  if( !matchToTrigger(hltpath1,m))continue;
+                  if( !matched2)continue;
+                  if( !matched1)continue;
                   DiMuProb_.numerator ->Fill( dimuonCL,PrescaleWeight);
                 }
               }
               if (  jpsi_cos>mincos && dimuonCL>minprob && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) )
               {
                 DiMuDS_.denominator ->Fill( displacementFromBeamspotJpsi.perp()/sqrt(jerr.rerr(displacementFromBeamspotJpsi)));
-                if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+                if (NumPassed )
                 {
-                  if( !matchToTrigger(hltpath1,m1))continue;
-                  if( !matchToTrigger(hltpath1,m))continue;
+                  if( !matched2)continue;
+                  if( !matched1)continue;
                   DiMuDS_.numerator ->Fill( displacementFromBeamspotJpsi.perp()/sqrt(jerr.rerr(displacementFromBeamspotJpsi)),PrescaleWeight);
  
                 }
@@ -980,9 +995,9 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
               if ( dimuonCL>minprob && (detach) && dMuPt(m1.p4()+m.p4()) && dMuEta(m1.p4()+m.p4()) )
               {
                 DiMuPVcos_.denominator ->Fill(jpsi_cos );
-                if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+                if (NumPassed )
                 {
-                  if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m))
+                  if(matched2 && matched1)
                   {
                     DiMuPVcos_.numerator ->Fill(jpsi_cos ,PrescaleWeight);
                   }
@@ -994,9 +1009,9 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
               {
                 DiMuPhi_.denominator ->Fill((m1.p4()+m.p4()).Phi());
                 DiMuDCA_.denominator ->Fill( cApp.distance());
-                if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+                if (NumPassed )
                 {
-                  if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m)) 
+                  if(matched2 && matched1) 
                   {
                     DiMuPhi_.numerator ->Fill((m1.p4()+m.p4()).Phi(),PrescaleWeight);
             	      DiMuDCA_.numerator ->Fill( cApp.distance(),PrescaleWeight);
@@ -1060,10 +1075,10 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
               if (tkPt(t) && tkEta(t))
               {
             		BMass_.denominator ->Fill(pB.mass());
-                if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+                if (NumPassed )
                 {
-                    if( !matchToTrigger(hltpath1,m1))continue;
-                    if( !matchToTrigger(hltpath1,m))continue;
+                    if( !matched2)continue;
+                    if( !matched1)continue;
                     if( !matchToTrigger(hltpath1,t))continue;
                     BMass_.numerator ->Fill(pB.mass(),PrescaleWeight);
                 }
@@ -1072,25 +1087,25 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
               if (tkEta(t))
               {
                 muPt_.denominator ->Fill(t.pt());
-                if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+                if (NumPassed )
                 {
-                  if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m) && matchToTrigger(hltpath1,t)) muPt_.numerator ->Fill(t.pt(),PrescaleWeight);
+                  if(matched2 && matched1 && matchToTrigger(hltpath1,t)) muPt_.numerator ->Fill(t.pt(),PrescaleWeight);
                 }
               }
               if (tkPt(t))
               {
                 muEta_.denominator->Fill(t.eta());
-                if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+                if (NumPassed )
                 {
-                  if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m) && matchToTrigger(hltpath1,t)) muEta_.numerator ->Fill(t.eta(),PrescaleWeight);
+                  if(matched2 && matched1 && matchToTrigger(hltpath1,t)) muEta_.numerator ->Fill(t.eta(),PrescaleWeight);
                 }
               }
               if (tkPt(t) && tkEta(t))
               {
                 muPhi_.denominator->Fill(t.phi());
-                if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+                if (NumPassed )
                 {
-                  if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m) && matchToTrigger(hltpath1,t)) muPhi_.numerator ->Fill(t.phi(),PrescaleWeight);
+                  if(matched2 && matched1 && matchToTrigger(hltpath1,t)) muPhi_.numerator ->Fill(t.phi(),PrescaleWeight);
                 }
               }
 
@@ -1145,25 +1160,25 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           if (tkEta(t))
           {
             muPt_.denominator ->Fill(t.pt());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m) && matchToTrigger(hltpath1,t)) muPt_.numerator ->Fill(t.pt(),PrescaleWeight);
+              if(matched2 && matched1 && matchToTrigger(hltpath1,t)) muPt_.numerator ->Fill(t.pt(),PrescaleWeight);
             }
           }
           if (tkPt(t))
           {
             muEta_.denominator->Fill(t.eta());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m) && matchToTrigger(hltpath1,t)) muEta_.numerator ->Fill(t.eta(),PrescaleWeight);
+              if(matched2 && matched1 && matchToTrigger(hltpath1,t)) muEta_.numerator ->Fill(t.eta(),PrescaleWeight);
             }
           }
           if (tkPt(t) && tkEta(t))
           {
             muPhi_.denominator->Fill(t.phi());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m) && matchToTrigger(hltpath1,t)) muPhi_.numerator ->Fill(t.phi(),PrescaleWeight);
+              if(matched2 && matched1 && matchToTrigger(hltpath1,t)) muPhi_.numerator ->Fill(t.phi(),PrescaleWeight);
             }
           }
 	    }
@@ -1240,10 +1255,10 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           if (tkPt(t) && tkEta(t) && tkPt(t1) && tkEta(t1))
           {      
             BMass_.denominator ->Fill(pB.mass());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if( !matchToTrigger(hltpath1,m1))continue;
-              if( !matchToTrigger(hltpath1,m))continue;
+              if( !matched2)continue;
+              if( !matched1)continue;
               if( !matchToTrigger(hltpath1,t))continue;
               if( !matchToTrigger(hltpath1,t1))continue;
               BMass_.numerator ->Fill(pB.mass(),PrescaleWeight);
@@ -1254,34 +1269,34 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           if (tkEta(t) && tkPt(t1) && tkEta(t1))
           {
             mu1Pt_.denominator ->Fill(t.pt());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m) && matchToTrigger(hltpath1,t) && matchToTrigger(hltpath1,t1)) mu1Pt_.numerator ->Fill(t.pt(),PrescaleWeight);
+              if(matched2 && matched1 && matchToTrigger(hltpath1,t) && matchToTrigger(hltpath1,t1)) mu1Pt_.numerator ->Fill(t.pt(),PrescaleWeight);
             }
           }
           if (tkPt(t) && tkPt(t1) && tkEta(t1))
           {
             mu1Eta_.denominator->Fill(t.eta());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m) && matchToTrigger(hltpath1,t)&& matchToTrigger(hltpath1,t1)) mu1Eta_.numerator ->Fill(t.eta(),PrescaleWeight);
+              if(matched2 && matched1 && matchToTrigger(hltpath1,t)&& matchToTrigger(hltpath1,t1)) mu1Eta_.numerator ->Fill(t.eta(),PrescaleWeight);
             }
           }
 
           if (tkEta(t1) && tkPt(t) && tkEta(t))
           {
             mu2Pt_.denominator ->Fill(t1.pt());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m) && matchToTrigger(hltpath1,t) && matchToTrigger(hltpath1,t1)) mu2Pt_.numerator ->Fill(t1.pt(),PrescaleWeight);
+              if(matched2 && matched1 && matchToTrigger(hltpath1,t) && matchToTrigger(hltpath1,t1)) mu2Pt_.numerator ->Fill(t1.pt(),PrescaleWeight);
             }
           }
           if (tkPt(t1) && tkPt(t) && tkEta(t))
           {
             mu2Eta_.denominator->Fill(t1.eta());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m) && matchToTrigger(hltpath1,t) && matchToTrigger(hltpath1,t1)) mu2Eta_.numerator ->Fill(t1.eta(),PrescaleWeight);
+              if(matched2 && matched1 && matchToTrigger(hltpath1,t) && matchToTrigger(hltpath1,t1)) mu2Eta_.numerator ->Fill(t1.eta(),PrescaleWeight);
             }
           }
 
@@ -1290,9 +1305,9 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
           {
             mu1Phi_.denominator->Fill(t.phi());
             mu2Phi_.denominator->Fill(t1.phi());
-            if (num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) )
+            if (NumPassed )
             {
-              if(matchToTrigger(hltpath1,m1) && matchToTrigger(hltpath1,m) && matchToTrigger(hltpath1,t) && matchToTrigger(hltpath1,t1)) 
+              if(matched2 && matched1 && matchToTrigger(hltpath1,t) && matchToTrigger(hltpath1,t1)) 
               {
                 mu1Phi_.numerator ->Fill(t.phi(),PrescaleWeight);
                 mu2Phi_.numerator ->Fill(t1.phi(),PrescaleWeight);
