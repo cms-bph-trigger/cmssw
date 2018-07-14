@@ -395,7 +395,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
   if (den_genTriggerEventFlag_->on() &&  den_genTriggerEventFlag_->accept( iEvent, iSetup) && num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) ) 
     {
       PrescaleWeight = Prescale(hltpath1, hltpath, iEvent, iSetup, hltPrescale_);
-
+      if (PrescaleWeight==0) PrescaleWeight = 1;
     }
   if (tnp_>0) {//TnP method 
     if (den_genTriggerEventFlag_->on() && ! den_genTriggerEventFlag_->accept( iEvent, iSetup) ) return;
@@ -1066,6 +1066,7 @@ void BPHMonitor::fillDescriptions(edm::ConfigurationDescriptions & descriptions)
   genericTriggerEventPSet.add<bool>("errorReplyHlt",false);
   genericTriggerEventPSet.add<bool>("errorReplyL1",true);
   genericTriggerEventPSet.add<bool>("l1BeforeMask",true);
+  genericTriggerEventPSet.add<unsigned int>("verbosityLevel",0);
   desc.add<edm::ParameterSetDescription>("numGenericTriggerEventPSet", genericTriggerEventPSet);
   desc.add<edm::ParameterSetDescription>("denGenericTriggerEventPSet", genericTriggerEventPSet);
 
@@ -1183,8 +1184,8 @@ double BPHMonitor::Prescale(const std::string  hltpath1, const std::string  hltp
   //retrieving HLT prescale
   PrescaleHLT_den = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath)).second;
   PrescaleHLT_num = (hltPrescale_->prescaleValuesInDetail(iEvent, iSetup, hltpath1)).second;
-  HLTP =PrescaleHLT_num/std::__gcd(PrescaleHLT_num, PrescaleHLT_den);
-
+  if(PrescaleHLT_den>0 && PrescaleHLT_num>0)HLTP =PrescaleHLT_num/std::__gcd(PrescaleHLT_num, PrescaleHLT_den);
+  else  HLTP = PrescaleHLT_num;
   //retrieving L1 prescale
   //Checking if we have the same l1 seeds in den and num
   //taking into account that they can be written in different order in num and den
