@@ -395,7 +395,7 @@ void BPHMonitor::analyze(edm::Event const& iEvent, edm::EventSetup const& iSetup
   if (den_genTriggerEventFlag_->on() &&  den_genTriggerEventFlag_->accept( iEvent, iSetup) && num_genTriggerEventFlag_->on() &&  num_genTriggerEventFlag_->accept( iEvent, iSetup) ) 
     {
       PrescaleWeight = Prescale(hltpath1, hltpath, iEvent, iSetup, hltPrescale_);
-      if (PrescaleWeight==0) PrescaleWeight = 1;
+      if (PrescaleWeight<1) PrescaleWeight = 1;
     }
   if (tnp_>0) {//TnP method 
     if (den_genTriggerEventFlag_->on() && ! den_genTriggerEventFlag_->accept( iEvent, iSetup) ) return;
